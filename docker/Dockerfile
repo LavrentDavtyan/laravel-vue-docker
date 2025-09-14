@@ -5,8 +5,8 @@ WORKDIR /var/www
 # Copy composer files
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies
-RUN composer install --no-dev --no-interaction --optimize-autoloader
+# Install PHP dependencies (skip scripts that require Laravel files)
+RUN composer install --no-interaction --optimize-autoloader --no-scripts
 
 # Stage 2: Node.js for Vue.js build
 FROM node:18-alpine as node_stage
@@ -34,6 +34,9 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+    
 WORKDIR /var/www
 
 # Copy vendor from composer stage
@@ -44,6 +47,9 @@ COPY --from=node_stage /var/www/public/build ./public/build
 
 # Copy Laravel application
 COPY . .
+
+# Run composer scripts now that Laravel files are available
+RUN composer run-script post-autoload-dump || true
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www \

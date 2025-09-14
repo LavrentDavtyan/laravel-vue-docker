@@ -63,6 +63,7 @@ docker-compose exec app php artisan migrate:fresh
 ### 5. Access Your Application
 - **Web Application**: http://localhost:8080
 - **Database**: localhost:3307 (username: root, password: root)
+- **phpMyAdmin**: http://localhost:8081 (username: root, password: root)
 
 ## Common Commands
 

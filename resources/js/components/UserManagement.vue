@@ -1,26 +1,12 @@
 <template>
   <div class="user-management">
-    <nav class="navbar">
-      <div class="nav-brand">
-        <h2>Laravel Vue App</h2>
-      </div>
-      <div class="nav-menu">
-        <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
-        <router-link to="/tasks" class="nav-link">Tasks</router-link>
-        <span class="welcome-text">Welcome, {{ userFullName }}</span>
-        <button @click="handleLogout" class="btn btn-outline" :disabled="loading">
-          Logout
-        </button>
-      </div>
-    </nav>
-
     <div class="content">
       <div class="container">
         <h1>User Management</h1>
         
         <div class="user-list">
           <div v-if="loading" class="loading">
-            Loading users...
+             Loading users...
           </div>
           
           <div v-else-if="error" class="error">
@@ -152,39 +138,6 @@ export default {
   min-height: 100vh;
   background-color: #f8f9fa;
 }
-
-.navbar {
-  background: white;
-  padding: 1rem 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.nav-brand h2 {
-  margin: 0;
-  color: #333;
-}
-
-.nav-menu {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.nav-link {
-  color: #666;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-.nav-link:hover {
-  background-color: #f8f9fa;
-}
-
 .welcome-text {
   color: #666;
   font-weight: 500;
@@ -326,17 +279,6 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .navbar {
-    padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .nav-menu {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
   .content {
     padding: 1rem;
   }

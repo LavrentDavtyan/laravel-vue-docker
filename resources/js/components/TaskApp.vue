@@ -1,23 +1,23 @@
 <template>
-    <div>
-      <h1>Task Manager</h1>
-      <input v-model="newTask" placeholder="Add task" @keyup.enter.prevent="addTask" />
-      <ul>
-        <li v-for="task in tasks" :key="task.id">
-          <input type="checkbox" v-model="task.completed" @change="toggleTask(task)" />
-          <span :style="{ textDecoration: task.completed ? 'line-through' : 'none' }">
-            {{ task.title }}
-          </span>
-          <button @click="deleteTask(task)">Delete</button>
-        </li>
-      </ul>
-    </div>
-    <div>
-        <h1>v-model</h1>
-        <input type="text" v-model="name">
-        <p>My name is: {{ name }}</p>
-    </div>
-  </template>
+  <div>
+    <h1>Task Manager</h1>
+    <input v-model="newTask" placeholder="Add task" @keyup.enter.prevent="addTask" />
+    <ul>
+      <li v-for="task in tasks" :key="task.id">
+        <input type="checkbox" v-model="task.completed" @change="toggleTask(task)" />
+        <span :style="{ textDecoration: task.completed ? 'line-through' : 'none' }">
+          {{ task.title }}
+        </span>
+        <button @click="deleteTask(task)">Delete</button>
+      </li>
+    </ul>
+  </div>
+  <div>
+    <h1>v-model</h1>
+    <input type="text" v-model="name">
+    <p>My name is: {{ name }}</p>
+  </div>
+</template>
   
   <script setup>
   import { ref, onMounted } from 'vue'

@@ -1,12 +1,28 @@
 <template>
   <div id="app">
+    <Navbar v-if="showNavbar" />
     <router-view />
   </div>
 </template>
 
 <script>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAuthStore } from './stores/authStore'
+import Navbar from './components/common/Navbar.vue'
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: { Navbar },
+  setup() {
+    const route = useRoute()
+    const authStore = useAuthStore()
+    const showNavbar = computed(() => {
+      // Hide on login/register
+      return authStore.isAuthenticated && !['/login', '/register'].includes(route.path)
+    })
+    return { showNavbar }
+  }
 }
 </script>
 

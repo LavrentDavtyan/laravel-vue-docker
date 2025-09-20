@@ -1,6 +1,4 @@
 <template>
-
-
   <div class="dashboard">
     <div class="dashboard-content">
       <div class="container">
@@ -27,18 +25,6 @@
                 {{ currentUser?.is_active ? 'Active' : 'Inactive' }}
               </span>
             </div>
-          </div>
-        </div>
-
-        <div class="actions">
-          <h3>Quick Actions</h3>
-          <div class="action-buttons">
-            <router-link to="/users" class="btn btn-secondary">
-              Manage Users
-            </router-link>
-            <router-link to="/expenses" class="btn btn-success">
-              Expense Tracker
-            </router-link>
           </div>
         </div>
       </div>

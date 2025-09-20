@@ -27,11 +27,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
-    
-    // User routes
-    Route::apiResource('users', UserController::class);
-    Route::get('/users/search', [UserController::class, 'search']);
-    Route::get('/users/active', [UserController::class, 'active']);
 
     // Expense routes
     Route::apiResource('expenses', \App\Http\Controllers\ExpenseController::class);

@@ -4,7 +4,7 @@
   <div class="dashboard">
     <div class="dashboard-content">
       <div class="container">
-        <h1>Dashboard 1222222</h1>
+        <h1>Dashboard</h1>
         
         <div class="user-info">
           <h3>User Information</h3>

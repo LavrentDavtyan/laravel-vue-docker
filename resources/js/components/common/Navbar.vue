@@ -16,15 +16,41 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <nav class="navbar">
-    <div class="nav-brand">
-      <h2>Laravel Vue App</h2>
-    </div>
-    <div class="nav-menu">
-      <span class="welcome-text">Welcome, {{ userFullName }}</span>
-      <button @click="handleLogout" class="btn btn-outline" :disabled="loading">
-        Logout
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container-fluid">
+      <!-- Brand -->
+      <a class="navbar-brand fw-bold" href="#">Expense Tracker</a>
+
+      <!-- Toggler for mobile -->
+      <button 
+        class="navbar-toggler" 
+        type="button" 
+        data-bs-toggle="collapse" 
+        data-bs-target="#navbarContent" 
+        aria-controls="navbarContent" 
+        aria-expanded="false" 
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
       </button>
+
+      <!-- Menu Items -->
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item d-flex align-items-center me-3">
+            <span class="text-muted">Welcome, {{ userFullName }}</span>
+          </li>
+          <li class="nav-item">
+            <button 
+              @click="handleLogout" 
+              class="btn btn-outline-danger" 
+              :disabled="loading"
+            >
+              Logout
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
   </nav>
 </template>

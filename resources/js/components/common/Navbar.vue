@@ -33,11 +33,8 @@ const handleLogout = async () => {
       >
         <span class="navbar-toggler-icon"></span>
       </button>
-
-      <!-- Menu Items -->
       <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          <!-- Nav Links -->
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
           <li class="nav-item">
             <router-link class="nav-link" to="/dashboard">Dashboard</router-link>
           </li>
@@ -47,12 +44,12 @@ const handleLogout = async () => {
           <li class="nav-item">
             <router-link class="nav-link" to="/reports">Reports</router-link>
           </li>
-
-          <!-- User Info + Logout -->
-          <li class="nav-item d-flex align-items-center ms-3">
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item d-flex align-items-center me-3">
             <span class="text-muted">Welcome, {{ userFullName }}</span>
           </li>
-          <li class="nav-item ms-2">
+          <li class="nav-item">
             <button 
               @click="handleLogout" 
               class="btn btn-outline-danger btn-sm" 
@@ -67,34 +64,29 @@ const handleLogout = async () => {
   </nav>
 </template>
 
-<style scoped>
-/* You can still customize if needed */
-</style>
-
-
 
 <style scoped>
-/* .navbar {
+.navbar {
   background: white;
   padding: 1rem 2rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-} */
+}
 
-/* .nav-brand h2 {
+.nav-brand h2 {
   margin: 0;
   color: #333;
-} */
+}
 
-/* .nav-menu {
+.nav-menu {
   display: flex;
   align-items: center;
   gap: 1rem;
-} */
+}
 
-/* @media (max-width: 768px) {
+@media (max-width: 768px) {
   .navbar {
     padding: 1rem;
     flex-direction: column;
@@ -113,5 +105,5 @@ const handleLogout = async () => {
   .action-buttons {
     flex-direction: column;
   }
-} */
+}
 </style>

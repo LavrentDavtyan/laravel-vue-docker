@@ -31,12 +31,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/tasks',
-    name: 'Tasks',
-    component: TaskApp,
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/users',
     name: 'Users',
     component: () => import('../components/UserManagement.vue'),

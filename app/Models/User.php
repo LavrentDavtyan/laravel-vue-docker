@@ -56,11 +56,4 @@ class User extends Authenticatable
         return $this->name . ' ' . $this->surname;
     }
 
-    /**
-     * Get the user's tasks.
-     */
-    public function tasks()
-    {
-        return $this->hasMany(Task::class);
-    }
 }

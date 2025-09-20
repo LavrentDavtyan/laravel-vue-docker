@@ -33,9 +33,6 @@
         <div class="actions">
           <h3>Quick Actions</h3>
           <div class="action-buttons">
-            <router-link to="/tasks" class="btn btn-primary">
-              Manage Tasks
-            </router-link>
             <router-link to="/users" class="btn btn-secondary">
               Manage Users
             </router-link>

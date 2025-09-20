@@ -48,14 +48,6 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(User $user): JsonResponse
-    {
-        return response()->json($user->load('tasks'));
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(User $user)
@@ -113,7 +105,6 @@ class UserController extends Controller
         $users = User::where('name', 'like', "%{$query}%")
             ->orWhere('surname', 'like', "%{$query}%")
             ->orWhere('email', 'like', "%{$query}%")
-            ->with('tasks')
             ->paginate(10);
 
         return response()->json($users);
@@ -125,7 +116,6 @@ class UserController extends Controller
     public function active(): JsonResponse
     {
         $users = User::where('is_active', true)
-            ->with('tasks')
             ->paginate(10);
 
         return response()->json($users);

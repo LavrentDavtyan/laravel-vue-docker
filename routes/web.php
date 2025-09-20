@@ -14,11 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
+// Catch-all route for SPA (must be last)
+Route::get('/{any}', function () {
     return view('welcome');
-});
-
-// User web routes
-Route::resource('users', UserController::class)->except(['store', 'update', 'destroy']);
-Route::get('/users/search', [UserController::class, 'search'])->name('users.search');
-Route::get('/users/active', [UserController::class, 'active'])->name('users.active');
+})->where('any', '.*');

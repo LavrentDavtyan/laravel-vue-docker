@@ -1,20 +1,18 @@
 <template>
   <div class="expense-tracker">
     <h2>Expense Tracker</h2>
-    <form @submit.prevent="handleSubmit">
-      <input v-model="form.amount" type="number" step="0.01" placeholder="Amount" required />
-      <input v-model="form.category" type="text" placeholder="Category" required />
-      <input v-model="form.description" type="text" placeholder="Description" />
-      <input v-model="form.date" type="date" required />
-      <button type="submit">{{ form.id ? 'Update' : 'Add' }} Expense</button>
-      <button v-if="form.id" type="button" @click="resetForm">Cancel</button>
-    </form>
+    <router-link to="/expenses/create" class="btn btn-primary" style="margin-bottom:1rem;">Add Expense</router-link>
 
     <div class="filters">
       <input v-model="filters.category" type="text" placeholder="Filter by category" />
       <input v-model="filters.date" type="date" placeholder="Filter by date" />
       <button @click="fetchExpenses">Apply Filters</button>
       <button @click="clearFilters">Clear</button>
+    </div>
+
+    <div class="chart-section">
+      <h3>Expenses by Category</h3>
+      <canvas ref="chartCanvas" width="400" height="300"></canvas>
     </div>
 
     <table>
@@ -34,29 +32,21 @@
           <td>{{ expense.description }}</td>
           <td>{{ expense.date }}</td>
           <td>
-            <button @click="editExpense(expense)">Edit</button>
-            <button @click="deleteExpense(expense.id)">Delete</button>
+            <router-link :to="`/expenses/${expense.id}/edit`" class="btn btn-sm btn-secondary">Edit</router-link>
+            <button @click="deleteExpense(expense.id)" class="btn btn-sm btn-danger">Delete</button>
           </td>
         </tr>
       </tbody>
     </table>
-
-    <div class="chart-section">
-      <h3>Expenses by Category</h3>
-      <canvas ref="chartCanvas" width="400" height="300"></canvas>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
-import { useAuthStore } from '../stores/authStore'
 import Chart from 'chart.js/auto'
 
-const authStore = useAuthStore()
 const expenses = ref([])
-const form = ref({ id: null, amount: '', category: '', description: '', date: '' })
 const filters = ref({ category: '', date: '' })
 const chartCanvas = ref(null)
 let chartInstance = null
@@ -69,29 +59,11 @@ const fetchExpenses = async () => {
   expenses.value = res.data
 }
 
-const handleSubmit = async () => {
-  if (form.value.id) {
-    await axios.put(`/api/expenses/${form.value.id}`, form.value)
-  } else {
-    await axios.post('/api/expenses', form.value)
-  }
-  resetForm()
-  fetchExpenses()
-}
-
-const editExpense = (expense) => {
-  form.value = { ...expense }
-}
-
 const deleteExpense = async (id) => {
   if (confirm('Delete this expense?')) {
     await axios.delete(`/api/expenses/${id}`)
     fetchExpenses()
   }
-}
-
-const resetForm = () => {
-  form.value = { id: null, amount: '', category: '', description: '', date: '' }
 }
 
 const clearFilters = () => {
@@ -101,11 +73,9 @@ const clearFilters = () => {
 
 const renderChart = () => {
   if (!chartCanvas.value) return
-  // Destroy previous chart instance if exists
   if (chartInstance) {
     chartInstance.destroy()
   }
-  // Group expenses by category
   const grouped = expenses.value.reduce((acc, exp) => {
     acc[exp.category] = (acc[exp.category] || 0) + parseFloat(exp.amount)
     return acc
@@ -113,7 +83,7 @@ const renderChart = () => {
   const labels = Object.keys(grouped)
   const data = Object.values(grouped)
   chartInstance = new Chart(chartCanvas.value, {
-    type: 'pie', // Change to 'bar' for bar chart
+    type: 'pie',
     data: {
       labels,
       datasets: [{
@@ -151,7 +121,7 @@ watch(expenses, () => {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
-form, .filters {
+.filters {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
@@ -169,5 +139,28 @@ th, td {
 }
 .chart-section {
   margin-top: 2rem;
+}
+.btn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  border: none;
+  margin-right: 0.25rem;
+  cursor: pointer;
+}
+.btn-primary {
+  background: #36A2EB;
+  color: #fff;
+}
+.btn-secondary {
+  background: #6c757d;
+  color: #fff;
+}
+.btn-danger {
+  background: #dc3545;
+  color: #fff;
+}
+.btn-sm {
+  font-size: 0.9em;
+  padding: 0.15rem 0.5rem;
 }
 </style>

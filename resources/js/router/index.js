@@ -43,6 +43,18 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/expenses/create',
+    name: 'ExpenseCreate',
+    component: () => import('../components/ExpenseForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/expenses/:id/edit',
+    name: 'ExpenseEdit',
+    component: () => import('../components/ExpenseForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('../components/NotFound.vue')

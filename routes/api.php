@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,5 +28,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
 
     // Expense routes
-    Route::apiResource('expenses', \App\Http\Controllers\ExpenseController::class);
+    Route::apiResource('expenses', ExpenseController::class);
 });

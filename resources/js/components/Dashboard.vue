@@ -39,6 +39,9 @@
             <router-link to="/users" class="btn btn-secondary">
               Manage Users
             </router-link>
+            <router-link to="/expenses" class="btn btn-success">
+              Expense Tracker
+            </router-link>
           </div>
         </div>
       </div>

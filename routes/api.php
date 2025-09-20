@@ -38,4 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class);
     Route::get('/users/search', [UserController::class, 'search']);
     Route::get('/users/active', [UserController::class, 'active']);
+
+    // Expense routes
+    Route::apiResource('expenses', \App\Http\Controllers\ExpenseController::class);
 });

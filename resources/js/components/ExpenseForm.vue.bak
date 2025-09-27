@@ -29,7 +29,7 @@ const localForm = ref({
 })
 
 const fetchExpense = async (id) => {
-  const res = await axios.get(`/expenses/${id}`)
+  const res = await axios.get(`/api/expenses/${id}`)
   localForm.value = { ...res.data }
 }
 
@@ -41,9 +41,9 @@ onMounted(() => {
 
 const handleSubmit = async () => {
   if (isEdit.value) {
-    await axios.put(`/expenses/${localForm.value.id}`, localForm.value)
+    await axios.put(`/api/expenses/${localForm.value.id}`, localForm.value)
   } else {
-    await axios.post('/expenses', localForm.value)
+    await axios.post('/api/expenses', localForm.value)
   }
   router.push('/expenses')
 }

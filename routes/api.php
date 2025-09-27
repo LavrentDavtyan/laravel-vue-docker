@@ -31,8 +31,5 @@ Route::middleware('auth:sanctum')->group(function () {
         // Expense routes
         Route::apiResource('expenses', ExpenseController::class);
 
-        // Reports routes must be inside the same braces
-        Route::get('/reports/category-share', [ReportController::class, 'categoryShare']);
-        Route::get('/reports/summary',        [ReportController::class, 'summary']);
 });
 

@@ -10,6 +10,27 @@
       <button @click="clearFilters">Clear</button>
     </div>
 
+
+      <!--  NEW: Reports Summary Panel -->
+      <div class="report-panel">
+          <h3>Summary Report</h3>
+          <div class="report-filters">
+              <label>Start: <input type="date" v-model="reportStart" /></label>
+              <label>End: <input type="date" v-model="reportEnd" /></label>
+              <button @click="loadSummary">Load Summary</button>
+          </div>
+
+          <div v-if="summary" class="report-results">
+              <div><strong>Range:</strong> {{ summary.range.start }} → {{ summary.range.end }}</div>
+              <div><strong>Total:</strong> {{ summary.total }}</div>
+              <div><strong>Count:</strong> {{ summary.count }}</div>
+              <div><strong>Days:</strong> {{ summary.days }}</div>
+              <div><strong>Avg per day:</strong> {{ summary.avg_per_day }}</div>
+              <div><strong>Avg per transaction:</strong> {{ summary.avg_per_tx }}</div>
+          </div>
+      </div>
+      <!--  END NEW -->
+
     <div class="chart-section">
       <h3>Expenses by Category</h3>
       <canvas ref="chartCanvas" width="400" height="300"></canvas>
@@ -43,13 +64,52 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import axios from 'axios'
+import axios from '../http'
 import Chart from 'chart.js/auto'
+
 
 const expenses = ref([])
 const filters = ref({ category: '', date: '' })
 const chartCanvas = ref(null)
 let chartInstance = null
+
+//  NEW: Reports state
+const reportStart = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)) // first day of month
+const reportEnd = ref(new Date().toISOString().slice(0, 10)) // today
+const summary = ref(null)
+
+const loadSummary = async () => {
+    try {
+        const { data } = await axios.get('/reports/summary', {
+            params: { start: reportStart.value, end: reportEnd.value }
+        })
+        summary.value = data
+
+        // also load category share at the same time
+        await loadCategoryShare()
+    } catch (e) {
+        console.error('Summary error:', e?.response?.data || e.message)
+        alert('Failed to load summary. Check console.')
+    }
+}
+
+
+
+const categoryData = ref([])
+
+async function loadCategoryShare() {
+    try {
+        const { data } = await axios.get('/reports/category-share', {
+            params: { start: reportStart.value, end: reportEnd.value }
+        })
+        categoryData.value = data.categories
+        renderChart() // re-render chart with new data
+    } catch (e) {
+        console.error('Category share error:', e?.response?.data || e.message)
+        alert('Failed to load category share. Check console.')
+    }
+}
+//  END NEW
 
 const fetchExpenses = async () => {
   let params = {}
@@ -72,44 +132,51 @@ const clearFilters = () => {
 }
 
 const renderChart = () => {
-  if (!chartCanvas.value) return
-  if (chartInstance) {
-    chartInstance.destroy()
-  }
-  const grouped = expenses.value.reduce((acc, exp) => {
-    acc[exp.category] = (acc[exp.category] || 0) + parseFloat(exp.amount)
-    return acc
-  }, {})
-  const labels = Object.keys(grouped)
-  const data = Object.values(grouped)
-  chartInstance = new Chart(chartCanvas.value, {
-    type: 'pie',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Expenses by Category',
-        data,
-        backgroundColor: [
-          '#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
-        ],
-      }]
-    },
-    options: {
-      responsive: false,
-      plugins: {
-        legend: { position: 'bottom' }
-      }
+    if (!chartCanvas.value) return
+    if (chartInstance) {
+        chartInstance.destroy()
     }
-  })
+
+    const labels = categoryData.value.map(c => c.category)
+    const data = categoryData.value.map(c => c.total)
+
+    if (!labels.length || !data.length) {
+        console.warn("No category data, skipping chart render")
+        return
+    }
+
+    chartInstance = new Chart(chartCanvas.value, {
+        type: 'pie',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Expenses by Category',
+                data,
+                backgroundColor: [
+                    '#36A2EB', '#FF6384', '#FFCE56',
+                    '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
+                ],
+            }]
+        },
+        options: {
+            responsive: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    })
 }
+
+
 
 onMounted(() => {
   fetchExpenses()
+    loadCategoryShare()
 })
 
-watch(expenses, () => {
-  renderChart()
-})
+// watch(expenses, () => {
+//   renderChart()
+// })
 </script>
 
 <style scoped>
@@ -127,6 +194,26 @@ watch(expenses, () => {
   margin-bottom: 1rem;
   flex-wrap: wrap;
 }
+
+.report-panel { /*  styling for reports */
+    margin: 1rem 0;
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #fafafa;
+}
+.report-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+.report-results div {
+    margin: 0.25rem 0;
+}
+
+
+
 table {
   width: 100%;
   border-collapse: collapse;

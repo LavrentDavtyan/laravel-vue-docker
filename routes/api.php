@@ -24,12 +24,12 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     // Auth routes
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/me', [AuthController::class, 'me']);
-        Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
 
-        // Expense routes
-        Route::apiResource('expenses', ExpenseController::class);
+    // Expense routes
+    Route::apiResource('expenses', ExpenseController::class);
 
 });
 

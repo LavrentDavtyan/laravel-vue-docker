@@ -1,13 +1,20 @@
 <template>
     <div class="expense-tracker">
-        <h2>Expense Tracker</h2>
-        <router-link to="/expenses/create" class="btn btn-primary" style="margin-bottom:1rem;">Add Expense</router-link>
+        
+        <div class="row">
+            <div class="col-10">
+                <h2>Expense Tracker</h2>
+            </div>
+            <div class="col-2 text-end">
+                <router-link to="/expenses/create" class="btn btn-primary" style="margin-bottom:1rem;">Add Expense</router-link>
+            </div>
+        </div>
 
-        <div class="filters">
-            <input v-model="filters.category" type="text" placeholder="Filter by category" />
-            <input v-model="filters.date" type="date" placeholder="Filter by date" />
-            <button @click="fetchExpenses">Apply Filters</button>
-            <button @click="clearFilters">Clear</button>
+        <div class="filters pt-5">
+            <input v-model="filters.category" type="text" class="form-control" placeholder="Filter by category" />
+            <input v-model="filters.date" type="date" class="form-control" placeholder="Filter by date" />
+            <button @click="fetchExpenses" class="btn btn-success">Apply Filters</button>
+            <button @click="clearFilters" class="btn btn-secondary">Clear</button>
         </div>
 
         <div class="chart-section">
@@ -43,7 +50,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import axios from '../http'            // keep axios wrapper with token + baseURL
+import axios from '../http'
 import Chart from 'chart.js/auto'
 
 const expenses = ref([])
@@ -115,19 +122,11 @@ watch(expenses, renderChart)
 </script>
 
 <style scoped>
-.expense-tracker {
-    max-width: 700px;
-    margin: 2rem auto;
-    background: #fff;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-}
 .filters {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1rem;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
 }
 table {
     width: 100%;

@@ -1,16 +1,72 @@
 <template>
-  <div class="expense-form">
-    <h3>{{ isEdit ? 'Edit Expense' : 'Add Expense' }}</h3>
+  <div class="expense-form container mt-4">
+    <h3 class="mb-4">{{ isEdit ? 'Edit Expense' : 'Add Expense' }}</h3>
+
     <form @submit.prevent="handleSubmit">
-      <input v-model="localForm.amount" type="number" step="0.01" placeholder="Amount" required />
-      <input v-model="localForm.category" type="text" placeholder="Category" required />
-      <input v-model="localForm.description" type="text" placeholder="Description" />
-      <input v-model="localForm.date" type="date" required />
-      <button type="submit">{{ isEdit ? 'Update Expense' : 'Add Expense' }}</button>
-      <button v-if="isEdit" type="button" @click="handleCancel">Cancel</button>
+      <div class="mb-3">
+        <label for="amount" class="form-label">Amount</label>
+        <input
+          id="amount"
+          v-model="localForm.amount"
+          type="number"
+          step="0.01"
+          placeholder="Enter amount"
+          class="form-control"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="category" class="form-label">Category</label>
+        <input
+          id="category"
+          v-model="localForm.category"
+          type="text"
+          placeholder="Enter category"
+          class="form-control"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <input
+          id="description"
+          v-model="localForm.description"
+          type="text"
+          placeholder="Optional description"
+          class="form-control"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="date" class="form-label">Date</label>
+        <input
+          id="date"
+          v-model="localForm.date"
+          type="date"
+          class="form-control"
+          required
+        />
+      </div>
+
+
+      <div class="d-flex justify-content-center gap-2">
+        <button
+          type="button"
+          class="btn btn-secondary mr-2"
+          @click="handleCancel"
+        >
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          {{ isEdit ? 'Update Expense' : 'Add Expense' }}
+        </button>
+      </div>
     </form>
   </div>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
@@ -62,9 +118,5 @@ const handleCancel = () => {
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
   max-width: 500px;
 }
-form {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
+
 </style>

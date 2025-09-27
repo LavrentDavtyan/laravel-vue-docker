@@ -9,7 +9,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./:/var/www
-      - /var/www/vendor  # Exclude vendor from volume mount
+      - /var/www/vendor
+      - /var/www/node_modules
     environment:
       APP_ENV: local
       APP_DEBUG: true

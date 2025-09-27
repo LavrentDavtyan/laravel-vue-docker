@@ -35,8 +35,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Expenses CRUD
     Route::apiResource('expenses', ExpenseController::class);
-
-
 });
 
 

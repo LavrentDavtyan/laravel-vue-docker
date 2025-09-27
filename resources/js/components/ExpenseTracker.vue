@@ -1,21 +1,35 @@
 <template>
     <div class="expense-tracker">
-        <h2>Expense Tracker</h2>
-        <router-link to="/expenses/create" class="btn btn-primary" style="margin-bottom:1rem;">Add Expense</router-link>
-
-        <div class="filters">
-            <input v-model="filters.category" type="text" placeholder="Filter by category" />
-            <input v-model="filters.date" type="date" placeholder="Filter by date" />
-            <button @click="fetchExpenses">Apply Filters</button>
-            <button @click="clearFilters">Clear</button>
-            <button @click="exportExcel">Export to Excel</button>
+        <div class="row">
+            <div class="col-10">
+                <h2>Expense Tracker</h2>
+            </div>
+            <div class="col-2 text-end">
+                <router-link to="/expenses/create" class="btn btn-primary" style="margin-bottom:1rem;">Add Expense</router-link>
+            </div>
         </div>
 
-        <div class="chart-section">
-            <h3>Expenses by Category</h3>
-            <canvas ref="chartCanvas" width="400" height="300"></canvas>
+        <div class="filters pt-5">
+            <input v-model="filters.category" type="text" class="form-control" placeholder="Filter by category" />
+            <input v-model="filters.date" type="date" class="form-control" placeholder="Filter by date" />
+            <button @click="fetchExpenses" class="btn btn-success">Apply Filters</button>
+            <button @click="clearFilters" class="btn btn-secondary">Clear</button>
         </div>
 
+        <div class="row">
+          <div class="col-6">
+            <div class="chart-section">
+              <h3>Expenses by Category</h3>
+              <canvas ref="chartCanvas" width="400" height="300"></canvas>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="chart-section">
+              <h3>Expenses per Day</h3>
+              <canvas ref="lineChartCanvas" width="650" height="300"></canvas>
+            </div>
+          </div>
+        </div>
         <table>
             <thead>
             <tr>
@@ -44,13 +58,15 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import axios from '../http'            // keep axios wrapper with token + baseURL
+import axios from '../http'
 import Chart from 'chart.js/auto'
 
 const expenses = ref([])
 const filters = ref({ category: '', date: '' })
 const chartCanvas = ref(null)
 let chartInstance = null
+const lineChartCanvas = ref(null)
+let lineChartInstance = null
 
 const fetchExpenses = async () => {
     const params = {}
@@ -106,6 +122,48 @@ const renderChart = () => {
             plugins: { legend: { position: 'bottom' } }
         }
     })
+
+  // --- Line chart by day ---
+  if (!lineChartCanvas.value) return
+  if (lineChartInstance) lineChartInstance.destroy()
+
+  // group by date
+  const groupedByDate = expenses.value.reduce((acc, exp) => {
+    const date = exp.date // should be YYYY-MM-DD
+    acc[date] = (acc[date] || 0) + Number(exp.amount)
+    return acc
+  }, {})
+
+  // sort by date
+  const sortedDates = Object.keys(groupedByDate).sort()
+  const dateTotals = sortedDates.map(d => groupedByDate[d])
+
+  if (sortedDates.length) {
+    lineChartInstance = new Chart(lineChartCanvas.value, {
+      type: 'line',
+      data: {
+        labels: sortedDates,
+        datasets: [{
+          label: 'Total Expenses per Day',
+          data: dateTotals,
+          fill: false,
+          borderColor: '#36A2EB',
+          tension: 0.3,
+          pointBackgroundColor: '#36A2EB'
+        }]
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          legend: { display: true, position: 'bottom' }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Date' } },
+          y: { title: { display: true, text: 'Amount' }, beginAtZero: true }
+        }
+      }
+    })
+  }
 }
 
 //  NEW: Export helpers
@@ -164,19 +222,11 @@ watch(expenses, renderChart)
 </script>
 
 <style scoped>
-.expense-tracker {
-    max-width: 700px;
-    margin: 2rem auto;
-    background: #fff;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-}
 .filters {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1rem;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
 }
 table {
     width: 100%;

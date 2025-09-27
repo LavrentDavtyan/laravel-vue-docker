@@ -18,26 +18,26 @@
     <p>My name is: {{ name }}</p>
   </div>
 </template>
-  
+
   <script setup>
   import { ref, onMounted } from 'vue'
-  import axios from 'axios'
-  
+  import axios from '../http'
+
   // state
   const tasks = ref([])
   const newTask = ref('')
   const name = ref('')
-  
+
   // lifecycle
   onMounted(() => {
     fetchTasks()
   })
-  
+
   // methods
   function fetchTasks() {
     axios.get('/api/tasks').then(res => tasks.value = res.data)
   }
-  
+
   function addTask() {
     if (!newTask.value) return
     axios.post('/api/tasks', { title: newTask.value })
@@ -46,11 +46,11 @@
         newTask.value = ''
       })
   }
-  
+
   function toggleTask(task) {
     axios.put(`/api/tasks/${task.id}`, { completed: task.completed })
   }
-  
+
   function deleteTask(task) {
     axios.delete(`/api/tasks/${task.id}`)
       .then(() => {
@@ -58,4 +58,3 @@
       })
   }
   </script>
-  

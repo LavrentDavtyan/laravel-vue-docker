@@ -1,19 +1,11 @@
-// resources/js/http.js
-import axios from 'axios';
+import axios from 'axios'
+axios.defaults.baseURL = '/api'
+// axios.defaults.baseURL = 'http://localhost:8080/api' // use this if you browse at :5173
 
-axios.defaults.baseURL = '/api';
+axios.interceptors.request.use((config) => {
+    const t = localStorage.getItem('auth_token')
+    if (t) config.headers.Authorization = `Bearer ${t}`
+    return config
+})
 
-// read token saved by your login flow
-const token = localStorage.getItem('auth_token');
-if (token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-}
-
-// expose a helper so login code can set the header right after login
-window.setAuthToken = (t) => {
-    if (!t) return;
-    localStorage.setItem('auth_token', t);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${t}`;
-};
-
-export default axios;
+export default axios

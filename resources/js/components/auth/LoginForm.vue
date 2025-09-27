@@ -9,11 +9,11 @@
             type="email"
             id="email"
             v-model="form.email"
-            required
             :disabled="loading"
             class="form-control"
             placeholder="Enter your email"
           />
+          <small class="text-danger">{{ errors.email }}</small>
         </div>
 
         <div class="form-group">
@@ -22,11 +22,11 @@
             type="password"
             id="password"
             v-model="form.password"
-            required
             :disabled="loading"
             class="form-control"
             placeholder="Enter your password"
           />
+          <small class="text-danger">{{ errors.password }}</small>
         </div>
 
         <div v-if="error" class="error-message">
@@ -50,22 +50,54 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import * as yup from 'yup'
 
 export default {
   name: 'LoginForm',
   setup() {
     const router = useRouter()
     const authStore = useAuthStore()
-    
+
     const loading = ref(false)
     const error = ref('')
-    
+
     const form = reactive({
       email: '',
       password: ''
     })
 
+    // validation errors
+    const errors = reactive({
+      email: '',
+      password: ''
+    })
+
+    // define schema
+    const schema = yup.object().shape({
+      email: yup.string().required('Email is required').email('Enter a valid email'),
+      password: yup.string().required('Password is required').min(6, 'Password must be at least 6 characters')
+    })
+
+    const validateForm = async () => {
+      try {
+        await schema.validate(form, { abortEarly: false })
+        errors.email = ''
+        errors.password = ''
+        return true
+      } catch (err) {
+        errors.email = ''
+        errors.password = ''
+        err.inner.forEach((e) => {
+          errors[e.path] = e.message
+        })
+        return false
+      }
+    }
+
     const handleLogin = async () => {
+      const isValid = await validateForm()
+      if (!isValid) return
+
       loading.value = true
       error.value = ''
 
@@ -83,6 +115,7 @@ export default {
       form,
       loading,
       error,
+      errors,
       handleLogin
     }
   }
@@ -190,5 +223,10 @@ export default {
 
 .form-footer a:hover {
   text-decoration: underline;
+}
+
+.text-danger {
+  color: #dc3545;
+  font-size: 0.9rem;
 }
 </style>

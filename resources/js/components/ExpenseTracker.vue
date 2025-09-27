@@ -1,6 +1,5 @@
 <template>
     <div class="expense-tracker">
-        
         <div class="row">
             <div class="col-10">
                 <h2>Expense Tracker</h2>
@@ -166,6 +165,54 @@ const renderChart = () => {
     })
   }
 }
+
+//  NEW: Export helpers
+const confirmExport = async () => {
+    const ok = confirm('Generate Excel from current filters? Click OK to download.')
+    if (!ok) return
+    await exportToExcel()
+}
+
+const exportExcel = async () => {
+    try {
+        // pass current filters if set (so export matches the table)
+        const params = {}
+        if (filters.value.category) params.category = filters.value.category
+        if (filters.value.date)     params.date     = filters.value.date
+        // optional date range support if you add inputs:
+        // if (reportStart.value) params.start = reportStart.value
+        // if (reportEnd.value)   params.end   = reportEnd.value
+
+        // IMPORTANT: responseType blob
+        const res = await axios.get('/exports/expenses', {
+            params,
+            responseType: 'blob'
+        })
+
+        // Try to read filename from headers
+        const dispo = res.headers['content-disposition'] || ''
+        const match = dispo.match(/filename="?([^"]+)"?/i)
+        const filename = match ? match[1] : `expenses_${Date.now()}.xlsx`
+
+        // Create a temporary link and download
+        const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.URL.revokeObjectURL(url)
+
+        // tiny success notice
+        alert('Excel is ready and downloading…')
+    } catch (e) {
+        console.error('Export error:', e?.response || e)
+        alert('Failed to export. Check console for details.')
+    }
+}
+
 
 onMounted(() => {
     fetchExpenses()

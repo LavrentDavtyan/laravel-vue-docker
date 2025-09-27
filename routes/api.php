@@ -1,10 +1,12 @@
 <?php
 
-use App\Http\Controllers\ExpenseController;
-use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,19 +19,22 @@ use App\Http\Controllers\ReportController;
 |
 */
 
-// Authentication routes (public)
+// Public auth
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login',    [AuthController::class, 'login']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-    // Auth routes
+    // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::get('/me',      [AuthController::class, 'me']);
+    Route::post('/refresh',[AuthController::class, 'refresh']);
 
-    // Expense routes
+    // Export to Excel
+    Route::get('/exports/expenses', [ExportController::class, 'exportExpenses']);
+
+    // Expenses CRUD
     Route::apiResource('expenses', ExpenseController::class);
-
 });
+
 

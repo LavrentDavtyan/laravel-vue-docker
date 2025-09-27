@@ -55,13 +55,13 @@ const fetchExpenses = async () => {
   let params = {}
   if (filters.value.category) params.category = filters.value.category
   if (filters.value.date) params.date = filters.value.date
-  const res = await axios.get('/api/expenses', { params })
+  const res = await axios.get('/expenses', { params })
   expenses.value = res.data
 }
 
 const deleteExpense = async (id) => {
   if (confirm('Delete this expense?')) {
-    await axios.delete(`/api/expenses/${id}`)
+    await axios.delete(`/expenses/${id}`)
     fetchExpenses()
   }
 }

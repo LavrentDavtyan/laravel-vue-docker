@@ -30,7 +30,8 @@
             </div>
           </div>
         </div>
-        <table>
+        <div>
+          <table>
             <thead>
             <tr>
                 <th>Amount</th>
@@ -53,6 +54,8 @@
             </tr>
             </tbody>
         </table>
+        <button @click="exportExcel">Export to Excel</button>
+      </div>
     </div>
 </template>
 

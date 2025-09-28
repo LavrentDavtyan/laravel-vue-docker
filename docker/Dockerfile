@@ -1,11 +1,23 @@
-# Stage 1: Composer dependencies
-FROM composer:2 as composer_stage
+# Stage 1: Composer dependencies with PHP extensions installed
+FROM php:8.1-fpm as composer_stage
+
+# Install system dependencies needed by composer and PHP extensions
+RUN apt-get update && apt-get install -y \
+    git curl zip unzip libzip-dev \
+    libfreetype6-dev libjpeg62-turbo-dev libpng-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql zip gd \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 WORKDIR /var/www
 
 # Copy composer files
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies (skip scripts that require Laravel files)
+# Install PHP dependencies (no scripts yet)
 RUN composer install --no-interaction --optimize-autoloader --no-scripts
 
 # Stage 2: Node.js for Vue.js build
@@ -24,8 +36,8 @@ COPY . .
 # Build Vue.js assets
 RUN npm run build
 
-# Stage 3: PHP-FPM with built assets
-FROM php:8.1-fpm
+# Stage 3: Final PHP-FPM with built assets
+FROM php:8.1-fpm as php_stage
 
 # Install system dependencies + GD extension
 RUN apt-get update && apt-get install -y \
@@ -33,9 +45,7 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev libjpeg62-turbo-dev libpng-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql zip gd \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -59,7 +69,6 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
-# Expose port 9000 for PHP-FPM
 EXPOSE 9000
 
 CMD ["php-fpm"]

@@ -54,7 +54,9 @@
             </tr>
             </tbody>
         </table>
-        <button @click="exportExcel">Export to Excel</button>
+            <div class="mt-3">
+                <ExportExcelButton />
+            </div>
       </div>
     </div>
 </template>
@@ -63,6 +65,7 @@
 import { ref, onMounted, watch } from 'vue'
 import axios from '../http'
 import Chart from 'chart.js/auto'
+import ExportExcelButton from './ExportExcelButton.vue'
 
 const expenses = ref([])
 const filters = ref({ category: '', date: '' })

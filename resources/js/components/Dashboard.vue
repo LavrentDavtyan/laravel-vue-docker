@@ -3,7 +3,7 @@
     <div class="dashboard-content">
       <div class="container">
         <h1>Dashboard</h1>
-        
+
         <div class="user-info">
           <h3>User Information</h3>
           <div class="info-grid">
@@ -42,7 +42,7 @@ export default {
   setup() {
     const router = useRouter()
     const authStore = useAuthStore()
-    
+
     const currentUser = computed(() => authStore.currentUser)
     const userFullName = computed(() => authStore.userFullName)
     const loading = computed(() => authStore.loading)

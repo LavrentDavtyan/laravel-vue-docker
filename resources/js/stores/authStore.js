@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
   const initializeAuth = () => {
     const storedToken = localStorage.getItem('auth_token')
     const storedUser = localStorage.getItem('user')
-    
+
     if (storedToken && storedUser) {
       token.value = storedToken
       user.value = JSON.parse(storedUser)
@@ -33,6 +33,8 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = authToken
     user.value = userData
     authService.setAuth(authToken, userData)
+      if (window.setAuthToken) window.setAuthToken(authToken)
+
   }
 
   const clearAuth = () => {
@@ -59,10 +61,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       setLoading(true)
       clearError()
-      
+
       const response = await authService.login(credentials)
       setAuth(response.token, response.user)
-      
+
       return response
     } catch (err) {
       setError(err.message || 'Login failed')
@@ -77,10 +79,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       setLoading(true)
       clearError()
-      
+
       const response = await authService.register(userData)
       setAuth(response.token, response.user)
-      
+
       return response
     } catch (err) {
       setError(err.message || 'Registration failed')
@@ -108,10 +110,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       setLoading(true)
       clearError()
-      
+
       const userData = await authService.getMe()
       user.value = userData
-      
+
       return userData
     } catch (err) {
       setError(err.message || 'Failed to fetch user data')
@@ -142,12 +144,15 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     loading,
     error,
-    
+
+      //Init
+      initializeAuth,
+
     // Getters
     isAuthenticated,
     currentUser,
     userFullName,
-    
+
     // Actions
     setAuth,
     clearAuth,

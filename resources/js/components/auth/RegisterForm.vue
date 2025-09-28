@@ -10,66 +10,76 @@
               type="text"
               id="name"
               v-model="form.name"
-              required
               :disabled="loading"
               class="form-control"
+              :class="{ 'is-invalid': validationErrors.name }"
               placeholder="Enter your first name"
             />
+            <div v-if="validationErrors.name" class="error-message">
+              {{ validationErrors.name }}
+            </div>
           </div>
-
           <div class="form-group">
             <label for="surname">Last Name</label>
             <input
               type="text"
               id="surname"
               v-model="form.surname"
-              required
               :disabled="loading"
               class="form-control"
+              :class="{ 'is-invalid': validationErrors.surname }"
               placeholder="Enter your last name"
             />
+            <div v-if="validationErrors.surname" class="error-message">
+              {{ validationErrors.surname }}
+            </div>
           </div>
         </div>
-
         <div class="form-group">
           <label for="email">Email</label>
           <input
             type="email"
             id="email"
             v-model="form.email"
-            required
             :disabled="loading"
             class="form-control"
+            :class="{ 'is-invalid': validationErrors.email }"
             placeholder="Enter your email"
           />
+          <div v-if="validationErrors.email" class="error-message">
+            {{ validationErrors.email }}
+          </div>
         </div>
-
         <div class="form-group">
           <label for="password">Password</label>
           <input
             type="password"
             id="password"
             v-model="form.password"
-            required
             :disabled="loading"
             class="form-control"
+            :class="{ 'is-invalid': validationErrors.password }"
             placeholder="Enter your password"
           />
+          <div v-if="validationErrors.password" class="error-message">
+            {{ validationErrors.password }}
+          </div>
         </div>
-
         <div class="form-group">
           <label for="password_confirmation">Confirm Password</label>
           <input
             type="password"
             id="password_confirmation"
             v-model="form.password_confirmation"
-            required
             :disabled="loading"
             class="form-control"
+            :class="{ 'is-invalid': validationErrors.password_confirmation }"
             placeholder="Confirm your password"
           />
+          <div v-if="validationErrors.password_confirmation" class="error-message">
+            {{ validationErrors.password_confirmation }}
+          </div>
         </div>
-
         <div class="form-group">
           <label for="gender">Gender</label>
           <select
@@ -77,11 +87,15 @@
             v-model="form.gender"
             :disabled="loading"
             class="form-control"
+            :class="{ 'is-invalid': validationErrors.gender }"
           >
             <option value="">Select gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
           </select>
+          <div v-if="validationErrors.gender" class="error-message">
+            {{ validationErrors.gender }}
+          </div>
         </div>
 
         <div v-if="error" class="error-message">
@@ -111,10 +125,11 @@ export default {
   setup() {
     const router = useRouter()
     const authStore = useAuthStore()
-    
+
     const loading = ref(false)
     const error = ref('')
-    
+    const validationErrors = reactive({})
+
     const form = reactive({
       name: '',
       surname: '',
@@ -124,19 +139,50 @@ export default {
       gender: ''
     })
 
+    const validateForm = () => {
+      validationErrors.name = !form.name
+        ? 'First name is required'
+        : form.name.length < 2
+          ? 'First name must be at least 2 characters'
+          : ''
+
+      validationErrors.surname = !form.surname
+        ? 'Last name is required'
+        : form.surname.length < 2
+          ? 'Last name must be at least 2 characters'
+          : ''
+
+      validationErrors.email = !form.email
+        ? 'Email is required'
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+          ? 'Invalid email address'
+          : ''
+
+      validationErrors.password = !form.password
+        ? 'Password is required'
+        : form.password.length < 8
+          ? 'Password must be at least 8 characters'
+          : !/[A-Z]/.test(form.password) || !/[0-9]/.test(form.password)
+            ? 'Password must include at least one uppercase letter and one number'
+            : ''
+
+      validationErrors.password_confirmation =
+        form.password !== form.password_confirmation
+          ? 'Passwords do not match'
+          : ''
+
+      validationErrors.gender = !form.gender
+        ? 'Gender is required'
+        : ''
+
+      return Object.values(validationErrors).every(v => v === '')
+    }
+
     const handleRegister = async () => {
       loading.value = true
       error.value = ''
 
-      // Basic validation
-      if (form.password !== form.password_confirmation) {
-        error.value = 'Passwords do not match'
-        loading.value = false
-        return
-      }
-
-      if (form.password.length < 8) {
-        error.value = 'Password must be at least 8 characters long'
+      if (!validateForm()) {
         loading.value = false
         return
       }
@@ -155,6 +201,7 @@ export default {
       form,
       loading,
       error,
+      validationErrors,
       handleRegister
     }
   }
@@ -222,6 +269,10 @@ export default {
   cursor: not-allowed;
 }
 
+.is-invalid {
+  border-color: #c33;
+}
+
 .btn {
   width: 100%;
   padding: 0.75rem;
@@ -250,29 +301,9 @@ export default {
 .error-message {
   background-color: #fee;
   color: #c33;
-  padding: 0.75rem;
+  padding: 0.5rem;
   border-radius: 5px;
-  margin-bottom: 1rem;
-  border: 1px solid #fcc;
-}
-
-.form-footer {
-  text-align: center;
-  margin-top: 1rem;
-}
-
-.form-footer a {
-  color: #667eea;
-  text-decoration: none;
-}
-
-.form-footer a:hover {
-  text-decoration: underline;
-}
-
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
 }
 </style>

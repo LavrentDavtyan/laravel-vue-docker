@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\Expense;
+use App\Models\Income;
 use Auth;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ExpensesExport implements
+class IncomesExport implements
     FromCollection,
     WithHeadings,
     WithMapping,
@@ -31,7 +31,7 @@ class ExpensesExport implements
     public function collection()
     {
         // We can fetch in any order; mapping controls the output order
-        return Expense::where('user_id', $this->userId)
+        return Income::where('user_id', $this->userId)
             ->orderBy('date', 'desc')
             ->get(['date', 'category', 'description', 'amount']);
     }

@@ -55,6 +55,24 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/incomes',
+    name: 'Incomes',
+    component: () => import('../components/IncomeTreker.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/incomes/create',
+    name: 'IncomesCreate',
+    component: () => import('../components/IncomeTrekerForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/incomes/:id/edit',
+    name: 'IncomesEdit',
+    component: () => import('../components/IncomeTrekerForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('../components/NotFound.vue')

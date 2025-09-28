@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\IncomeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,9 +32,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Export to Excel
     Route::get('/exports/expenses', [ExportController::class, 'exportExpenses']);
+    Route::get('/exports/incomes', [ExportController::class, 'exportIncomes']);
 
-    // Expenses CRUD
+    // Expenses 
     Route::apiResource('expenses', ExpenseController::class);
+
+    //Incomes
+    Route::apiResource('incomes', IncomeController::class);
 });
 
 

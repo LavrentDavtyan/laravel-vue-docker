@@ -3,7 +3,7 @@
         class="btn btn-success export-btn d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill shadow-sm"
         :disabled="loading"
         @click="exportExcel"
-        title="Export to Excel"
+        :title="`Export ${label} to Excel`"
     >
         <!-- Excel Icon -->
         <svg
@@ -32,7 +32,7 @@
         <!-- Loading spinner -->
         <span v-else class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 
-        <span class="fw-semibold">{{ loading ? 'Exporting…' : 'Export to Excel' }}</span>
+        <span class="fw-semibold">{{ loading ? `Exporting ${label}…` : `Export ${label}` }}</span>
     </button>
 </template>
 
@@ -40,20 +40,27 @@
 import { ref } from 'vue'
 import axios from '../http'
 
+const props = defineProps({
+    type: {
+        type: String,
+        required: true,
+        validator: (v) => ['expenses', 'incomes'].includes(v)
+    }
+})
+
 const loading = ref(false)
+const label = props.type.charAt(0).toUpperCase() + props.type.slice(1)
 
 const exportExcel = async () => {
     try {
         loading.value = true
 
-        const res = await axios.get('/exports/expenses', { responseType: 'blob' })
-
-        // Build filename like expenses_2025-09-27.xlsx
+        const res = await axios.get(`/exports/${props.type}`, { responseType: 'blob' })
         const now = new Date()
         const yyyy = now.getFullYear()
         const mm = String(now.getMonth() + 1).padStart(2, '0')
         const dd = String(now.getDate()).padStart(2, '0')
-        const filename = `expenses_${yyyy}-${mm}-${dd}.xlsx`
+        const filename = `${props.type}_${yyyy}-${mm}-${dd}.xlsx`
 
         const url = window.URL.createObjectURL(new Blob([res.data]))
         const link = document.createElement('a')
@@ -64,8 +71,8 @@ const exportExcel = async () => {
         link.remove()
         window.URL.revokeObjectURL(url)
     } catch (e) {
-        console.error('Excel export failed:', e)
-        alert('Export failed. Please try again.')
+        console.error(`${label} export failed:`, e)
+        alert(`Export ${label} failed. Please try again.`)
     } finally {
         loading.value = false
     }

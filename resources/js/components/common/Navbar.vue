@@ -19,7 +19,7 @@ const handleLogout = async () => {
   <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container-fluid">
       <!-- Brand -->
-      <router-link class="navbar-brand fw-bold" to="/">Expense Tracker</router-link>
+      <router-link class="navbar-brand fw-bold" to="/">Tracker</router-link>
 
       <!-- Toggler for mobile -->
       <button 
@@ -42,8 +42,11 @@ const handleLogout = async () => {
             <router-link class="nav-link" to="/expenses">Expenses</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/reports">Reports</router-link>
+            <router-link class="nav-link" to="/incomes">Incomes</router-link>
           </li>
+          <!-- <li class="nav-item">
+            <router-link class="nav-link" to="/reports">Reports</router-link>
+          </li> -->
         </ul>
         <ul class="navbar-nav ms-auto">
           <li class="nav-item d-flex align-items-center me-3">

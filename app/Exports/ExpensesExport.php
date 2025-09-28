@@ -2,78 +2,74 @@
 
 namespace App\Exports;
 
-use Illuminate\Support\Collection;
+use App\Models\Expense;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ExpensesExport implements FromCollection, WithHeadings, WithEvents
+class ExpensesExport implements
+    FromCollection,
+    WithHeadings,
+    WithMapping,
+    ShouldAutoSize,
+    WithColumnFormatting,
+    WithStyles
 {
-    public function __construct(protected Collection $rows) {}
+    protected int $userId;
+
+    public function __construct(int $userId)
+    {
+        $this->userId = $userId;
+    }
 
     public function collection()
     {
-
-        return $this->rows->map(function ($e) {
-            return [
-                (string) $e->id,
-                (string) $e->amount,
-                (string) $e->category,
-                (string) $e->description,
-                is_string($e->date) ? $e->date : optional($e->date)->toDateString(),
-                optional($e->created_at)->toDateTimeString(),
-            ];
-        });
+        // We can fetch in any order; mapping controls the output order
+        return Expense::where('user_id', $this->userId)
+            ->orderBy('date', 'desc')
+            ->get(['date', 'category', 'description', 'amount']);
     }
 
+    /** Column titles (and their order) */
     public function headings(): array
     {
-        return ['ID', 'Amount', 'Category', 'Description', 'Date', 'Created At'];
+        // 👉 Amount, Category, Description, Date
+        return ['Amount', 'Category', 'Description', 'Date'];
     }
 
-    public function registerEvents(): array
+    /** Row mapping to match the order above */
+    public function map($row): array
+    {
+        $amount = number_format((float)$row->amount, 2, '.', '');
+        $date   = $row->date ? (string) \Carbon\Carbon::parse($row->date)->format('Y-m-d') : '';
+
+        return [
+            $amount,            // A
+            $row->category,     // B
+            $row->description,  // C
+            $date,              // D
+        ];
+    }
+
+    /** Auto-size number/date formatting (optional but nice) */
+    public function columnFormats(): array
     {
         return [
-            AfterSheet::class => function (AfterSheet $event) {
-                $sheet = $event->sheet->getDelegate();
+            'A' => NumberFormat::FORMAT_NUMBER_00,       // Amount
+            'D' => NumberFormat::FORMAT_DATE_YYYYMMDD2,  // Date
+        ];
+    }
 
-
-                $data = collect([$this->headings()])->merge($this->collection());
-
-
-                $columns = ['A','B','C','D','E','F'];
-
-
-                $maxLens = array_fill_keys($columns, 0);
-
-                foreach ($data as $r) {
-                    foreach ($columns as $i => $col) {
-                        $val = isset($r[$i]) ? (string)$r[$i] : '';
-                        $len = mb_strlen($val);
-                        if ($len > $maxLens[$col]) {
-                            $maxLens[$col] = $len;
-                        }
-                    }
-                }
-
-
-                foreach ($columns as $col) {
-                    $padding  = 2;
-                    $maxWidth = ($col === 'D') ? 60 : 30; // Description can be wider
-                    $width    = min($maxLens[$col] + $padding, $maxWidth);
-                    if ($width < 8) $width = 8; // minimum width
-                    $sheet->getColumnDimension($col)->setWidth($width);
-                }
-
-
-                $sheet->getStyle('D1:D' . (count($data)))
-                      ->getAlignment()
-                      ->setWrapText(true);
-
-
-                $sheet->getStyle('A1:F1')->getFont()->setBold(true);
-            },
+    /** Bold header row */
+    public function styles(Worksheet $sheet): array
+    {
+        return [
+            1 => ['font' => ['bold' => true]],
         ];
     }
 }

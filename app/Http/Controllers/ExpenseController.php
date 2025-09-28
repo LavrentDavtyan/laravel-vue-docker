@@ -10,27 +10,31 @@ class ExpenseController extends Controller
     public function index(Request $request)
     {
         $query = Expense::where('user_id', Auth::id());
-        if ($request->has('category')) {
+
+        if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
-        if ($request->has('date')) {
-            $query->where('date', $request->date);
+        if ($request->filled('date')) {
+            $query->whereDate('date', $request->date);
         }
-        return response()->json($query->orderBy('date', 'desc')->get());
+
+        return $query->orderBy('date', 'desc')->get();
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:0',
-            'category' => 'required|string|max:255',
+            'amount'      => 'required|numeric|min:0.01',
+            'category'    => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'date' => 'required|date',
+            'date'        => 'required|date',
         ]);
+
         $expense = Expense::create([
             'user_id' => Auth::id(),
             ...$validated,
         ]);
+
         return response()->json($expense, 201);
     }
 
@@ -43,12 +47,14 @@ class ExpenseController extends Controller
     public function update(Request $request, $id)
     {
         $expense = Expense::where('user_id', Auth::id())->findOrFail($id);
+
         $validated = $request->validate([
-            'amount' => 'sometimes|numeric|min:0',
-            'category' => 'sometimes|string|max:255',
+            'amount'      => 'sometimes|numeric|min:0.01',
+            'category'    => 'sometimes|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'date' => 'sometimes|date',
+            'date'        => 'sometimes|date',
         ]);
+
         $expense->update($validated);
         return response()->json($expense);
     }

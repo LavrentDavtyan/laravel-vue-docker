@@ -22,6 +22,7 @@ use App\Http\Controllers\ExportController;
 // Public auth
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
+Route::get('/health', fn () => response()->json(['status' => 'ok']));
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -34,11 +35,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/exports/expenses', [ExportController::class, 'exportExpenses']);
     Route::get('/exports/incomes', [ExportController::class, 'exportIncomes']);
 
-    // Expenses 
+    // Expenses
     Route::apiResource('expenses', ExpenseController::class);
 
     //Incomes
     Route::apiResource('incomes', IncomeController::class);
 });
-
-

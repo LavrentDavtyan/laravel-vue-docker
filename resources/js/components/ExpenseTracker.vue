@@ -67,10 +67,13 @@ import axios from '../http'
 import Chart from 'chart.js/auto'
 import ExportExcel from './ExportExcel.vue'
 
+/** @type {import('vue').Ref<Array<{id:number|string, amount:number|string, category:string|null, description:string|null, date:string|null}>>} */
 const expenses = ref([])
 const filters = ref({ category: '', date: '' })
+/** @type {import('vue').Ref<HTMLCanvasElement|null>} */
 const chartCanvas = ref(null)
 let chartInstance = null
+/** @type {import('vue').Ref<HTMLCanvasElement|null>} */
 const lineChartCanvas = ref(null)
 let lineChartInstance = null
 
@@ -84,8 +87,17 @@ const fetchExpenses = async () => {
 
 const deleteExpense = async (id) => {
     if (confirm('Delete this expense?')) {
-        await axios.delete(`/expenses/${id}`)
-        fetchExpenses()
+        try {
+            await axios.delete(`/expenses/${id}`)
+            await fetchExpenses() // wait for refresh to finish
+        } catch (e) {
+            if (e?.response?.status === 401) {
+                alert('Session expired. Please log in again.')
+            } else {
+                console.error(e)
+                alert('Delete failed.')
+            }
+        }
     }
 }
 
@@ -102,8 +114,10 @@ const renderChart = () => {
 
     // compute category totals on the client from expenses
     const grouped = expenses.value.reduce((acc, exp) => {
-        acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount)
-        return acc
+      const key = exp.category ?? 'Uncategorized' // fix: avoid undefined/typos
+      const val = Number(exp.amount) || 0         // fix: ensure numeric
+      acc[key] = (acc[key] || 0) + val
+      return acc
     }, {})
     const labels = Object.keys(grouped)
     const data = Object.values(grouped)
@@ -135,8 +149,9 @@ const renderChart = () => {
 
   // group by date
   const groupedByDate = expenses.value.reduce((acc, exp) => {
-    const date = exp.date // should be YYYY-MM-DD
-    acc[date] = (acc[date] || 0) + Number(exp.amount)
+    const key = (exp.date || '').slice(0, 10)   // normalize YYYY-MM-DD
+    const val = Number(exp.amount) || 0         // fix: ensure numeric
+    acc[key] = (acc[key] || 0) + val
     return acc
   }, {})
 
@@ -224,7 +239,7 @@ onMounted(() => {
     fetchExpenses()
 })
 
-watch(expenses, renderChart)
+watch(() => expenses.value, () => renderChart())
 </script>
 
 <style scoped>

@@ -9,11 +9,18 @@
             </div>
         </div>
 
-        <div class="filters pt-5">
-            <input v-model="filters.category" type="text" class="form-control" placeholder="Filter by category" />
-            <input v-model="filters.date" type="date" class="form-control" placeholder="Filter by date" />
-            <button @click="fetchExpenses" class="btn btn-success">Apply Filters</button>
-            <button @click="clearFilters" class="btn btn-secondary">Clear</button>
+        <div class="filters pt-5 d-flex align-items-end gap-2 flex-wrap">
+          <input v-model="filters.category" type="text" class="form-control" placeholder="Filter by category" style="max-width: 200px;" />
+          <input v-model="filters.date_from" type="date" class="form-control" placeholder="From" style="max-width: 180px;" />
+          <input v-model="filters.date_to" type="date" class="form-control" placeholder="To" style="max-width: 180px;" />
+          <button @click="applyFilters" class="btn btn-success">Apply Filters</button>
+          <button @click="clearFilters" class="btn btn-secondary">Clear</button>
+        </div>
+        <div class="presets-row d-flex gap-2 mt-3 flex-wrap">
+          <button @click="setPreset('today')" :class="['btn','btn-sm', activePreset==='today' ? 'btn-primary' : 'btn-light']">Today</button>
+          <button @click="setPreset('week')"  :class="['btn','btn-sm', activePreset==='week'  ? 'btn-primary' : 'btn-light']">This Week</button>
+          <button @click="setPreset('month')" :class="['btn','btn-sm', activePreset==='month' ? 'btn-primary' : 'btn-light']">This Month</button>
+          <button @click="setPreset('last30')" :class="['btn','btn-sm', activePreset==='last30'? 'btn-primary' : 'btn-light']">Last 30 days</button>
         </div>
 
         <div class="row">
@@ -63,13 +70,33 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import axios from '../http'
 import Chart from 'chart.js/auto'
 import ExportExcel from './ExportExcel.vue'
 
+const route = useRoute()
+const router = useRouter()
+
+const filters = ref({
+    category: route.query.category ? String(route.query.category) : '',
+    date_from: route.query.date_from ? String(route.query.date_from) : '',
+    date_to: route.query.date_to ? String(route.query.date_to) : ''
+})
+
+if (!route.query.date_from && !route.query.date_to) {
+  const today = new Date()
+  const start = new Date(today)
+  start.setDate(today.getDate() - 30)
+  filters.value.date_from = start.toISOString().slice(0, 10)
+  filters.value.date_to = today.toISOString().slice(0, 10)
+  router.replace({ query: { ...route.query, date_from: filters.value.date_from, date_to: filters.value.date_to } })
+}
+
+const activePreset = ref('last30')
+
 /** @type {import('vue').Ref<Array<{id:number|string, amount:number|string, category:string|null, description:string|null, date:string|null}>>} */
 const expenses = ref([])
-const filters = ref({ category: '', date: '' })
 /** @type {import('vue').Ref<HTMLCanvasElement|null>} */
 const chartCanvas = ref(null)
 let chartInstance = null
@@ -77,10 +104,58 @@ let chartInstance = null
 const lineChartCanvas = ref(null)
 let lineChartInstance = null
 
+function toISODate(d) {
+    return d.toISOString().slice(0, 10)
+}
+
+function setPreset(type) {
+    const today = new Date()
+    let from = '', to = ''
+    switch (type) {
+        case 'today':
+            from = to = toISODate(today)
+            break
+        case 'week': {
+            const start = new Date(today)
+            const weekday = today.getDay() // 0=Sun
+            start.setDate(today.getDate() - weekday)
+            from = toISODate(start)
+            to = toISODate(today)
+            break
+        }
+        case 'month': {
+            const start = new Date(today.getFullYear(), today.getMonth(), 1)
+            from = toISODate(start)
+            to = toISODate(today)
+            break
+        }
+        case 'last30': {
+            const start = new Date(today)
+            start.setDate(today.getDate() - 30)
+            from = toISODate(start)
+            to = toISODate(today)
+            break
+        }
+    }
+    filters.value.date_from = from
+    filters.value.date_to = to
+    activePreset.value = type
+    // sync to URL without reloading
+    router.replace({ query: { ...route.query, category: filters.value.category || undefined, date_from: from || undefined, date_to: to || undefined } })
+    fetchExpenses()
+}
+
+function applyFilters() {
+    router.replace({ query: { ...route.query, category: filters.value.category || undefined, date_from: filters.value.date_from || undefined, date_to: filters.value.date_to || undefined } })
+    fetchExpenses()
+}
+
+
 const fetchExpenses = async () => {
     const params = {}
     if (filters.value.category) params.category = filters.value.category
-    if (filters.value.date)     params.date     = filters.value.date
+    if (filters.value.date_from) params.date_from = filters.value.date_from
+    if (filters.value.date_to)   params.date_to   = filters.value.date_to
     const res = await axios.get('/expenses', { params })
     expenses.value = res.data
 }
@@ -102,7 +177,9 @@ const deleteExpense = async (id) => {
 }
 
 const clearFilters = () => {
-    filters.value = { category: '', date: '' }
+    filters.value = { category: '', date_from: '', date_to: '' }
+    activePreset.value = ''
+    router.replace({ query: { ...route.query, category: undefined, date_from: undefined, date_to: undefined } })
     fetchExpenses()
 }
 
@@ -239,16 +316,27 @@ onMounted(() => {
     fetchExpenses()
 })
 
+watch(() => route.query, (q) => {
+    filters.value.category  = q.category ? String(q.category) : ''
+    filters.value.date_from = q.date_from ? String(q.date_from) : ''
+    filters.value.date_to   = q.date_to ? String(q.date_to) : ''
+    fetchExpenses()
+})
+
+
 watch(() => expenses.value, () => renderChart())
 </script>
 
 <style scoped>
 .filters {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    /* flex-wrap: wrap; */
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
+.presets-row { margin-bottom: 0.5rem; }
+
 table {
     width: 100%;
     border-collapse: collapse;

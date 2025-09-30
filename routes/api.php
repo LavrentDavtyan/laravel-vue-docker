@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\CategoryReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,4 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Incomes
     Route::apiResource('incomes', IncomeController::class);
+
+    Route::get('/expenses/category/{slug}', [CategoryReportController::class, 'showExpenses']);
+    Route::get('/incomes/category/{slug}', [CategoryReportController::class, 'showIncomes']);
 });

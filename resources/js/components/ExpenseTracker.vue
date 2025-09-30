@@ -51,7 +51,9 @@
             <tbody>
             <tr v-for="expense in expenses" :key="expense.id">
                 <td>{{ expense.amount }}</td>
-                <td>{{ expense.category }}</td>
+                <td>
+                    <router-link :to="{ path: `/expenses/category/${expense.category}`, query: route.query }">{{ expense.category }}</router-link>
+                </td>
                 <td>{{ expense.description }}</td>
                 <td>{{ expense.date }}</td>
                 <td>

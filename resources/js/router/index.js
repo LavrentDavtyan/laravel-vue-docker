@@ -76,7 +76,22 @@ const routes = [
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('../components/NotFound.vue')
-  }
+  },
+
+    {
+        path: '/expenses/category/:slug',
+        name: 'ExpenseCategory',
+        component: () => import('../components/ExpenseCategory.vue'),
+        props: true
+    },
+    {
+        path: '/incomes/category/:slug',
+        name: 'IncomeCategory',
+        component: () => import('../components/IncomeCategory.vue'),
+        props: true
+    }
+
+
 ]
 
 const router = createRouter({

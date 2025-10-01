@@ -9,16 +9,19 @@ class ExpenseController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Expense::where('user_id', Auth::id());
+        $query = Expense::query()->where('user_id', $request->user()->id);
 
+        if ($request->filled('date_from')) {
+            $query->whereDate('date', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('date', '<=', $request->input('date_to'));
+        }
         if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
-        if ($request->filled('date')) {
-            $query->whereDate('date', $request->date);
+            $query->where('category', $request->input('category'));
         }
 
-        return $query->orderBy('date', 'desc')->get();
+        return response()->json($query->orderByDesc('date')->get());
     }
 
     public function store(Request $request)

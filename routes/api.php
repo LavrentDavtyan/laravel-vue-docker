@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\CategoryReportController;
+use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\HelperController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +25,7 @@ use App\Http\Controllers\ExportController;
 // Public auth
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
+Route::get('/health', fn () => response()->json(['status' => 'ok']));
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -34,11 +38,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/exports/expenses', [ExportController::class, 'exportExpenses']);
     Route::get('/exports/incomes', [ExportController::class, 'exportIncomes']);
 
-    // Expenses 
+    // Expenses
     Route::apiResource('expenses', ExpenseController::class);
 
     //Incomes
     Route::apiResource('incomes', IncomeController::class);
+
+    Route::get('/expenses/category/{slug}', [CategoryReportController::class, 'showExpenses']);
+    Route::get('/incomes/category/{slug}', [CategoryReportController::class, 'showIncomes']);
+
+    Route::get('/budgets/stats', [BudgetController::class, 'stats']);
+    Route::apiResource('budgets', BudgetController::class);
+
+    Route::get('/helper/overspend', [HelperController::class, 'overspend']);
+        Route::post('/helper/advice', [HelperController::class, 'advice']);
+
 });
-
-

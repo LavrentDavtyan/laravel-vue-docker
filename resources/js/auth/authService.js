@@ -54,7 +54,8 @@ class AuthService {
         }
 
         const response = await fetch(`${API_BASE_URL}${url}`, config);
-        
+        // Handle auth errors centrally
+
         if (response.status === 401) {
             this.clearAuth();
             window.location.href = '/login';
@@ -70,18 +71,21 @@ class AuthService {
             const response = await this.apiRequest('/register', {
                 method: 'POST',
                 body: JSON.stringify(userData)
-            });
+            })
+
+            const data = await response.json().catch(() => ({}))
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Registration failed');
+                const message = data.message
+                    || (data.errors ? Object.values(data.errors).flat().join(', ') : null)
+                    || 'Registration failed'
+                throw new Error(message)
             }
 
-            const data = await response.json();
-            this.setAuth(data.token, data.user);
-            return data;
+            this.setAuth(data.token, data.user)
+            return data
         } catch (error) {
-            throw error;
+            throw error
         }
     }
 
@@ -91,18 +95,21 @@ class AuthService {
             const response = await this.apiRequest('/login', {
                 method: 'POST',
                 body: JSON.stringify(credentials)
-            });
+            })
+
+            const data = await response.json().catch(() => ({}))
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Login failed');
+                const message = data.message
+                    || (data.errors ? Object.values(data.errors).flat().join(', ') : null)
+                    || 'Login failed'
+                throw new Error(message)
             }
 
-            const data = await response.json();
-            this.setAuth(data.token, data.user);
-            return data;
+            this.setAuth(data.token, data.user)
+            return data
         } catch (error) {
-            throw error;
+            throw error
         }
     }
 
@@ -124,39 +131,35 @@ class AuthService {
     // Get current user data
     async getMe() {
         try {
-            const response = await this.apiRequest('/me');
-            
+            const response = await this.apiRequest('/me')
+            const data = await response.json().catch(() => ({}))
             if (!response.ok) {
-                throw new Error('Failed to get user data');
+                const message = data.message || 'Failed to get user data'
+                throw new Error(message)
             }
-
-            const data = await response.json();
-            this.user = data.user;
-            localStorage.setItem('user', JSON.stringify(data.user));
-            return data.user;
+            this.user = data.user
+            localStorage.setItem('user', JSON.stringify(data.user))
+            return data.user
         } catch (error) {
-            throw error;
+            throw error
         }
     }
 
     // Refresh token
     async refreshToken() {
         try {
-            const response = await this.apiRequest('/refresh', {
-                method: 'POST'
-            });
-
+            const response = await this.apiRequest('/refresh', { method: 'POST' })
+            const data = await response.json().catch(() => ({}))
             if (!response.ok) {
-                throw new Error('Token refresh failed');
+                const message = data.message || 'Token refresh failed'
+                throw new Error(message)
             }
-
-            const data = await response.json();
-            this.token = data.token;
-            localStorage.setItem('auth_token', data.token);
-            return data.token;
+            this.token = data.token
+            localStorage.setItem('auth_token', data.token)
+            return data.token
         } catch (error) {
-            this.clearAuth();
-            throw error;
+            this.clearAuth()
+            throw error
         }
     }
 }

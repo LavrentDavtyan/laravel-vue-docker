@@ -56,6 +56,8 @@ import { useRoute } from 'vue-router'
 import { watch } from 'vue'
 import axios from '../http'
 
+
+
 const month = ref(new Date().toISOString().slice(0,7)) // YYYY-MM
 const stats = ref([])
 
@@ -105,6 +107,15 @@ async function remove(category) {
 }
 
 const route = useRoute()
+
+onMounted(() => {
+    const f = route.query?.date_from
+    if (f && /^\d{4}-\d{2}-\d{2}$/.test(f)) {
+        month.value = f.slice(0,7) // YYYY-MM
+        load()
+    }
+})
+
 watch(
   () => route.fullPath,
   () => {

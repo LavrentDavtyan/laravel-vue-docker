@@ -9,6 +9,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\CategoryReportController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\HelperController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,5 +49,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/budgets/stats', [BudgetController::class, 'stats']);
     Route::apiResource('budgets', BudgetController::class);
+
+    Route::get('/helper/overspend', [HelperController::class, 'overspend']);
+        Route::post('/helper/advice', [HelperController::class, 'advice']);
 
 });

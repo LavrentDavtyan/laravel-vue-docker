@@ -21,7 +21,6 @@
             <button @click="setPreset('today')"  :class="['btn','btn-sm', activePreset==='today'  ? 'btn-primary' : 'btn-light']">Today</button>
             <button @click="setPreset('week')"   :class="['btn','btn-sm', activePreset==='week'   ? 'btn-primary' : 'btn-light']">This Week</button>
             <button @click="setPreset('month')"  :class="['btn','btn-sm', activePreset==='month'  ? 'btn-primary' : 'btn-light']">This Month</button>
-            <button @click="setPreset('last30')" :class="['btn','btn-sm', activePreset==='last30' ? 'btn-primary' : 'btn-light']">Last 30 days</button>
         </div>
 
         <div class="row">
@@ -95,14 +94,13 @@ const filters = ref({
 
 if (!route.query.date_from && !route.query.date_to) {
     const today = new Date()
-    const start = new Date(today)
-    start.setDate(today.getDate() - 30)
-    filters.value.date_from = start.toISOString().slice(0, 10)
-    filters.value.date_to   = today.toISOString().slice(0, 10)
+    const start = new Date(today.getFullYear(), today.getMonth(), 1)
+    filters.value.date_from = fmtLocalYMD(start)
+    filters.value.date_to   = endOfMonth(today)
     router.replace({ query: { ...route.query, date_from: filters.value.date_from, date_to: filters.value.date_to } })
 }
 
-const activePreset = ref('last30')
+const activePreset = ref('month')
 
 const incomes = ref([])
 const chartCanvas = ref(null)
@@ -110,7 +108,17 @@ let chartInstance = null
 const lineChartCanvas = ref(null)
 let lineChartInstance = null
 
-function toISODate(d) { return d.toISOString().slice(0, 10) }
+function fmtLocalYMD(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+function endOfMonth(d) {
+  const e = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+  return fmtLocalYMD(e)
+}
+function toISODate(d) { return fmtLocalYMD(d) }
 
 function setPreset(type) {
     const today = new Date()
@@ -118,8 +126,7 @@ function setPreset(type) {
     switch (type) {
         case 'today': { from = toISODate(today); to = from; break }
         case 'week':  { const start = new Date(today); const weekday = today.getDay(); start.setDate(today.getDate() - weekday); from = toISODate(start); to = toISODate(today); break }
-        case 'month': { const start = new Date(today.getFullYear(), today.getMonth(), 1); from = toISODate(start); to = toISODate(today); break }
-        case 'last30':{ const start = new Date(today); start.setDate(today.getDate() - 30); from = toISODate(start); to = toISODate(today); break }
+        case 'month': { const start = new Date(today.getFullYear(), today.getMonth(), 1); from = toISODate(start); to = endOfMonth(today); break }
     }
     filters.value.date_from = from
     filters.value.date_to   = to
@@ -206,16 +213,34 @@ const renderChart = () => {
     }
 }
 
-onMounted(() => { fetchIncomes() })
+watch(() => route.query, async () => {
+    let category  = route.query.category ? String(route.query.category) : ''
+    let date_from = route.query.date_from ? String(route.query.date_from) : ''
+    let date_to   = route.query.date_to   ? String(route.query.date_to)   : ''
 
-watch(() => route.query, (q) => {
-    filters.value.category  = q.category  ? String(q.category)  : ''
-    filters.value.date_from = q.date_from ? String(q.date_from) : ''
-    filters.value.date_to   = q.date_to   ? String(q.date_to)   : ''
-    fetchIncomes()
-})
+    // If user navigates to /incomes with no query, default to This Month (full month)
+    if (!date_from && !date_to) {
+        const today = new Date()
+        const start = new Date(today.getFullYear(), today.getMonth(), 1)
+        date_from = fmtLocalYMD(start)
+        date_to   = endOfMonth(today)
+        activePreset.value = 'month'   //  force month active by default
+        const cur = { ...(route.query || {}) }
+        if (cur.date_from !== date_from || cur.date_to !== date_to || (cur.category || '') !== category) {
+            router.replace({ query: { category: category || undefined, date_from, date_to } }).catch(() => {})
+        }
+    }
+
+    filters.value.category  = category
+    filters.value.date_from = date_from
+    filters.value.date_to   = date_to
+
+    await fetchIncomes()
+}, { immediate: true })
 
 watch(() => incomes.value, () => renderChart())
+
+
 </script>
 
 <style scoped>

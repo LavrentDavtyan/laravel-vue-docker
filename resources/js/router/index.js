@@ -89,6 +89,13 @@ const routes = [
         name: 'IncomeCategory',
         component: () => import('../components/IncomeCategory.vue'),
         props: true
+    },
+
+    {
+        path: '/budgets',
+        name: 'Budgets',
+        component: () => import('../components/BudgetsPanel.vue'),
+        meta: { requiresAuth: true }
     }
 
 

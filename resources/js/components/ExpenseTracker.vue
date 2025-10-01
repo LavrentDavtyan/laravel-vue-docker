@@ -9,140 +9,281 @@
             </div>
         </div>
 
+        <!-- Filters -->
         <div class="filters pt-5 d-flex align-items-end gap-2 flex-wrap">
-          <input v-model="filters.category" type="text" class="form-control" placeholder="Filter by category" style="max-width: 200px;" />
-          <input v-model="filters.date_from" type="date" class="form-control" placeholder="From" style="max-width: 180px;" />
-          <input v-model="filters.date_to" type="date" class="form-control" placeholder="To" style="max-width: 180px;" />
-          <button @click="applyFilters" class="btn btn-success">Apply Filters</button>
-          <button @click="clearFilters" class="btn btn-secondary">Clear</button>
-        </div>
-        <div class="presets-row d-flex gap-2 mt-3 flex-wrap">
-          <button @click="setPreset('today')" :class="['btn','btn-sm', activePreset==='today' ? 'btn-primary' : 'btn-light']">Today</button>
-          <button @click="setPreset('week')"  :class="['btn','btn-sm', activePreset==='week'  ? 'btn-primary' : 'btn-light']">This Week</button>
-          <button @click="setPreset('month')" :class="['btn','btn-sm', activePreset==='month' ? 'btn-primary' : 'btn-light']">This Month</button>
-          <button @click="setPreset('last30')" :class="['btn','btn-sm', activePreset==='last30'? 'btn-primary' : 'btn-light']">Last 30 days</button>
+            <input v-model="filters.category" type="text" class="form-control" placeholder="Filter by category" style="max-width: 200px;" />
+            <input v-model="filters.date_from" type="date" class="form-control" placeholder="From" style="max-width: 180px;" />
+            <input v-model="filters.date_to" type="date" class="form-control" placeholder="To" style="max-width: 180px;" />
+            <button @click="applyFilters" class="btn btn-success">Apply Filters</button>
+            <button @click="clearFilters" class="btn btn-secondary">Clear</button>
         </div>
 
-        <div class="row">
-          <div class="col-6">
-            <div class="chart-section">
-              <h3>Expenses by Category</h3>
-              <canvas ref="chartCanvas" width="400" height="300"></canvas>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="chart-section">
-              <h3>Expenses per Day</h3>
-              <canvas ref="lineChartCanvas" width="650" height="300"></canvas>
-            </div>
-          </div>
+        <!-- Presets -->
+        <div class="presets-row d-flex gap-2 mt-3 flex-wrap">
+            <button @click="setPreset('today')"  :class="['btn','btn-sm', activePreset==='today'  ? 'btn-primary' : 'btn-light']">Today</button>
+            <button @click="setPreset('week')"   :class="['btn','btn-sm', activePreset==='week'   ? 'btn-primary' : 'btn-light']">This Week</button>
+            <button @click="setPreset('month')"  :class="['btn','btn-sm', activePreset==='month'  ? 'btn-primary' : 'btn-light']">This Month</button>
         </div>
+
+        <!-- Charts -->
+        <div class="row">
+            <div class="col-6">
+                <div class="chart-section">
+                    <h3>Expenses by Category</h3>
+                    <canvas ref="chartCanvas" width="400" height="300"></canvas>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="chart-section">
+                    <h3>Expenses per Day</h3>
+                    <canvas ref="lineChartCanvas" width="650" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Table -->
         <div>
-          <table>
-            <thead>
-            <tr>
-                <th>Amount</th>
-                <th>Category</th>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="expense in expenses" :key="expense.id">
-                <td>{{ expense.amount }}</td>
-                <td>
-                    <router-link :to="{ path: `/expenses/category/${expense.category}`, query: route.query }">{{ expense.category }}</router-link>
-                </td>
-                <td>{{ expense.description }}</td>
-                <td>{{ expense.date }}</td>
-                <td>
-                    <router-link :to="`/expenses/${expense.id}/edit`" class="btn btn-sm btn-secondary">Edit</router-link>
-                    <button @click="deleteExpense(expense.id)" class="btn btn-sm btn-danger">Delete</button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-          <div class="mt-3">
-              <ExportExcel type="expenses" />
-          </div>
-      </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>Amount</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="expense in expenses" :key="expense.id">
+                    <td>{{ expense.amount }}</td>
+                    <td>
+                      <router-link :to="{ path: `/expenses/category/${expense.category}`, query: route.query }">
+                        {{ expense.category }}
+                      </router-link>
+                    </td>
+                    <td>{{ expense.description }}</td>
+                    <td>{{ expense.date }}</td>
+                    <td>
+                        <router-link :to="`/expenses/${expense.id}/edit`" class="btn btn-sm btn-secondary">Edit</router-link>
+                        <button @click="deleteExpense(expense.id)" class="btn btn-sm btn-danger">Delete</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- Budgets panel (month only) -->
+            <div v-if="activePreset === 'month'" class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="mb-0">Budgets — {{ prettyMonth }}</h3>
+                    <button class="btn btn-outline-secondary btn-sm" @click="showBudgetPanel = !showBudgetPanel">
+                        {{ showBudgetPanel ? 'Hide budgets' : 'Show budgets' }}
+                    </button>
+                </div>
+
+                <div v-show="showBudgetPanel" class="card p-3">
+                    <!-- Add/Edit form -->
+                    <form class="row g-2 mb-3" @submit.prevent="saveBudget">
+                        <div class="col-md-3">
+                            <input v-model="form.category" type="text" class="form-control" placeholder="Category (e.g., fuel)" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input v-model.number="form.amount_decimal" type="number" step="0.01" min="0" class="form-control" placeholder="Monthly budget" required>
+                        </div>
+                        <div class="col-md-2">
+                            <input v-model="form.currency" type="text" class="form-control" placeholder="Currency" maxlength="3">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-center">
+                            <input type="month"
+                                   v-model="monthControl"
+                                   @change="onMonthChange"
+                                   class="form-control form-control-sm"
+                                   style="min-width: 150px;">
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                {{ form.id ? 'Update' : 'Add' }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Budgets table -->
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th class="text-end">Budget</th>
+                                <th class="text-end">Spent</th>
+                                <th class="text-end">Remaining</th>
+                                <th>Status</th>
+                                <th style="width:260px;">Progress</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="row in budgetRows" :key="row.id">
+                                <td>{{ row.category }}</td>
+                                <td class="text-end">{{ money(row.amount_decimal, row.currency) }}</td>
+                                <td class="text-end">{{ money(row.spent, row.currency) }}</td>
+                                <td class="text-end" :class="{'text-danger': row.remaining < 0}">
+                                    {{ money(row.remaining, row.currency) }}
+                                </td>
+                                <td>
+                                    <span v-if="row.status !== '—'" class="badge" :class="badgeClass(row.status)">{{ row.status }}</span>
+                                    <span v-else class="text-muted">—</span>
+                                </td>
+                                <td>
+                                    <div class="progress budget-progress">
+                                        <div class="progress-bar"
+                                             :class="barClass(row.status)"
+                                             :style="{ width: Math.min(100, row.pct) + '%' }" />
+                                    </div>
+                                    <div v-if="row.overflowPct > 0" class="progress budget-overflow mt-1">
+                                        <div class="progress-bar bg-overflow" :style="{ width: Math.min(100, row.overflowPct) + '%' }" />
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-secondary me-2" @click="startEdit(row)">Edit</button>
+                                    <button class="btn btn-sm btn-danger" @click="removeBudget(row.id)">Delete</button>
+                                </td>
+                            </tr>
+                            <tr v-if="!budgetRows.length">
+                                <td colspan="7" class="text-center text-muted py-3">
+                                    No budgets for {{ currentMonthAnchor() }}. Add one above.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="mt-3">
+                <ExportExcel type="expenses" />
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
+import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router'
 import axios from '../http'
 import Chart from 'chart.js/auto'
 import ExportExcel from './ExportExcel.vue'
 
+// Format a Date as YYYY-MM-DD in local time (no UTC shift)
+function fmtLocalYMD(d) {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+}
+function endOfMonth(d) {
+    // last day of this month in local time
+    const e = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+    return fmtLocalYMD(e)
+}
 const route = useRoute()
 const router = useRouter()
 
 const filters = ref({
     category: route.query.category ? String(route.query.category) : '',
     date_from: route.query.date_from ? String(route.query.date_from) : '',
-    date_to: route.query.date_to ? String(route.query.date_to) : ''
+    date_to:   route.query.date_to   ? String(route.query.date_to)   : ''
 })
 
 if (!route.query.date_from && !route.query.date_to) {
   const today = new Date()
-  const start = new Date(today)
-  start.setDate(today.getDate() - 30)
-  filters.value.date_from = start.toISOString().slice(0, 10)
-  filters.value.date_to = today.toISOString().slice(0, 10)
+  const start = new Date(today.getFullYear(), today.getMonth(), 1)
+  filters.value.date_from = fmtLocalYMD(start)
+  filters.value.date_to   = endOfMonth(today)
   router.replace({ query: { ...route.query, date_from: filters.value.date_from, date_to: filters.value.date_to } })
 }
+const activePreset = ref('month')
 
-const activePreset = ref('last30')
+// Month control for budgets table (YYYY-MM)
+const monthControl = ref((() => {
+  const base = filters.value.date_to || filters.value.date_from || new Date().toISOString().slice(0,10)
+  const d = new Date(base)
+  const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+  return ym
+})())
 
-/** @type {import('vue').Ref<Array<{id:number|string, amount:number|string, category:string|null, description:string|null, date:string|null}>>} */
+const prettyMonth = computed(() => {
+  const d = new Date(`${monthControl.value}-01`)
+  return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+})
+
+function onMonthChange() {
+  // when the month changes, reload budgets & stats and clear editing form
+  form.value = { id: null, category: '', amount_decimal: null, currency: form.value.currency || 'USD' }
+  Promise.all([loadBudgets(), loadBudgetStats()])
+}
+
+// Show budget UI only for "This Month" preset
+const showBudgets = computed(() => activePreset.value === 'month')
+
+// Portion above 100% budget (overflow)
+function overflowPct(entry) {
+  const p = Number(entry?.pct || 0)
+  return Math.max(0, p - 100)
+}
+
 const expenses = ref([])
-/** @type {import('vue').Ref<HTMLCanvasElement|null>} */
 const chartCanvas = ref(null)
 let chartInstance = null
-/** @type {import('vue').Ref<HTMLCanvasElement|null>} */
 const lineChartCanvas = ref(null)
 let lineChartInstance = null
+let refreshInFlight = false
 
-function toISODate(d) {
-    return d.toISOString().slice(0, 10)
+// Helper to refresh everything (expenses + budgets + stats), guarded to prevent parallel refreshes
+async function refreshAll() {
+  if (refreshInFlight) return
+  refreshInFlight = true
+  try {
+    await fetchExpenses()
+    await Promise.all([loadBudgetStats(), loadBudgets()])
+  } finally {
+    refreshInFlight = false
+  }
 }
+
+// Window focus/visibility hooks so navigating back or refocusing refreshes data
+function handleFocus() {
+  refreshAll()
+}
+function handleVisibility() {
+  if (document.visibilityState === 'visible') {
+    refreshAll()
+  }
+}
+
+function toISODate(d) { return fmtLocalYMD(d) }
 
 function setPreset(type) {
     const today = new Date()
     let from = '', to = ''
     switch (type) {
-        case 'today':
-            from = to = toISODate(today)
-            break
+        case 'today': from = to = toISODate(today); break
         case 'week': {
             const start = new Date(today)
-            const weekday = today.getDay() // 0=Sun
+            const weekday = today.getDay()
             start.setDate(today.getDate() - weekday)
-            from = toISODate(start)
-            to = toISODate(today)
-            break
+            from = toISODate(start); to = toISODate(today); break
         }
         case 'month': {
             const start = new Date(today.getFullYear(), today.getMonth(), 1)
-            from = toISODate(start)
-            to = toISODate(today)
-            break
-        }
-        case 'last30': {
-            const start = new Date(today)
-            start.setDate(today.getDate() - 30)
-            from = toISODate(start)
-            to = toISODate(today)
-            break
+            from = toISODate(start); to = endOfMonth(today); break
         }
     }
     filters.value.date_from = from
-    filters.value.date_to = to
+    filters.value.date_to   = to
     activePreset.value = type
-    // sync to URL without reloading
     router.replace({ query: { ...route.query, category: filters.value.category || undefined, date_from: from || undefined, date_to: to || undefined } })
     fetchExpenses()
 }
@@ -151,7 +292,6 @@ function applyFilters() {
     router.replace({ query: { ...route.query, category: filters.value.category || undefined, date_from: filters.value.date_from || undefined, date_to: filters.value.date_to || undefined } })
     fetchExpenses()
 }
-
 
 const fetchExpenses = async () => {
     const params = {}
@@ -162,11 +302,158 @@ const fetchExpenses = async () => {
     expenses.value = res.data
 }
 
+// --- Budgets badge data ---
+const budgetStats = ref([])
+const budgetMap = computed(() => {
+    const m = {}
+    budgetStats.value.forEach(s => { m[s.category] = s })
+    return m
+})
+const barClass = (status) => ({
+    'bg-success': status === 'Under',
+    'bg-warning': status === 'Near',
+    'bg-danger':  status === 'Over'
+})
+const badgeClass = (status) => ({
+    'text-bg-success': status === 'Under',
+    'text-bg-warning': status === 'Near',
+    'text-bg-danger':  status === 'Over'
+})
+function currentMonthAnchor() {
+  // Prefer explicit month chosen in the month control
+  if (monthControl.value) return `${monthControl.value}-01`
+  const d = filters.value.date_to
+    ? new Date(filters.value.date_to)
+    : (filters.value.date_from ? new Date(filters.value.date_from) : new Date())
+  return fmtLocalYMD(new Date(d.getFullYear(), d.getMonth(), 1))
+}
+async function loadBudgetStats() {
+    try {
+        const res = await axios.get('/budgets/stats', { params: { month: currentMonthAnchor() }})
+        budgetStats.value = res.data
+    } catch (e) {
+        budgetStats.value = []
+        console.warn('budgets/stats unavailable', e?.response?.status)
+    }
+}
+
+// --- Budgets panel state/data ---
+const showBudgetPanel = ref(true)
+
+// Raw budgets for the current month
+const budgets = ref([])
+
+// Add/Edit form
+const form = ref({
+  id: null,
+  category: '',
+  amount_decimal: null,
+  currency: 'USD',
+})
+
+// Money helper
+function money(n, cur = 'USD') {
+  const v = Number(n ?? 0)
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur || 'USD' }).format(v)
+  } catch {
+    return `${v.toFixed(2)} ${cur || ''}`.trim()
+  }
+}
+
+// Load budgets (optionally filtered by month)
+async function loadBudgets() {
+  const res = await axios.get('/budgets', { params: { month: currentMonthAnchor() } })
+  budgets.value = Array.isArray(res.data) ? res.data : []
+}
+
+// Create/Update a budget
+async function saveBudget() {
+  const payload = {
+    category: form.value.category?.trim(),
+    month: currentMonthAnchor(),
+    amount_decimal: form.value.amount_decimal,
+    currency: form.value.currency?.trim() || 'USD',
+  }
+
+  if (form.value.id) {
+    await axios.put(`/budgets/${form.value.id}`, payload)
+  } else {
+    await axios.post('/budgets', payload)
+  }
+
+  form.value = { id: null, category: '', amount_decimal: null, currency: payload.currency }
+  await Promise.all([loadBudgets(), loadBudgetStats()])
+}
+
+function startEdit(row) {
+  form.value = {
+    id: row.id,
+    category: row.category,
+    amount_decimal: row.amount_decimal,
+    currency: row.currency || 'USD',
+  }
+}
+
+async function removeBudget(id) {
+  if (!confirm('Delete this budget?')) return
+  await axios.delete(`/budgets/${id}`)
+  await Promise.all([loadBudgets(), loadBudgetStats()])
+}
+
+// Merge budgets with stats for UI table rows (robust fallback)
+const budgetRows = computed(() => {
+  const monthAnchor = currentMonthAnchor()
+  const anchorDate = new Date(monthAnchor)
+  const yyyy = anchorDate.getFullYear()
+  const mm   = anchorDate.getMonth()
+
+  // Build a quick client-side sum by category for the current month as a fallback
+  const clientSums = expenses.value.reduce((acc, e) => {
+    if (!e?.category || !e?.date) return acc
+    const d = new Date(String(e.date))
+    if (d.getFullYear() === yyyy && d.getMonth() === mm) {
+      const cat = String(e.category)
+      acc[cat] = (acc[cat] || 0) + (Number(e.amount) || 0)
+    }
+    return acc
+  }, {})
+
+  const statsByCat = budgetStats.value.reduce((m, s) => {
+    if (s?.category) m[s.category] = s
+    return m
+  }, {})
+
+  return budgets.value.map(b => {
+    const budget = Number(b.amount_decimal || 0)
+    const cur    = statsByCat[b.category] || {}
+
+    // Flexible keys from API; fallback to client sums
+    let spent = Number(
+      cur.spent ?? cur.current ?? cur.total ?? cur.sum ?? clientSums[b.category] ?? 0
+    )
+
+    // Percent either from API or computed
+      const pct = budget > 0 ? (spent / budget) * 100 : 0
+      const status = pct > 100 ? 'Over' : (pct >= 80 ? 'Near' : 'Under')
+
+    return {
+      ...b,
+      spent,
+      pct,
+      status,
+      remaining: budget - spent,
+      overflowPct: Math.max(0, pct - 100),
+    }
+  })
+})
+
 const deleteExpense = async (id) => {
     if (confirm('Delete this expense?')) {
         try {
             await axios.delete(`/expenses/${id}`)
-            await fetchExpenses() // wait for refresh to finish
+            await fetchExpenses()
+            await loadBudgetStats()
         } catch (e) {
             if (e?.response?.status === 401) {
                 alert('Session expired. Please log in again.')
@@ -183,159 +470,124 @@ const clearFilters = () => {
     activePreset.value = ''
     router.replace({ query: { ...route.query, category: undefined, date_from: undefined, date_to: undefined } })
     fetchExpenses()
+    loadBudgetStats()
 }
 
 const renderChart = () => {
     if (!chartCanvas.value) return
-    if (chartInstance) {
-        chartInstance.destroy()
-    }
+    if (chartInstance) chartInstance.destroy()
 
-    // compute category totals on the client from expenses
     const grouped = expenses.value.reduce((acc, exp) => {
-      const key = exp.category ?? 'Uncategorized' // fix: avoid undefined/typos
-      const val = Number(exp.amount) || 0         // fix: ensure numeric
-      acc[key] = (acc[key] || 0) + val
-      return acc
+        const key = exp.category ?? 'Uncategorized'
+        const val = Number(exp.amount) || 0
+        acc[key] = (acc[key] || 0) + val
+        return acc
     }, {})
     const labels = Object.keys(grouped)
     const data = Object.values(grouped)
 
-    if (!labels.length) return
+    if (labels.length) {
+        chartInstance = new Chart(chartCanvas.value, {
+            type: 'pie',
+            data: { labels, datasets: [{ label: 'Expenses by Category', data,
+                    backgroundColor: ['#36A2EB','#FF6384','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#C9CBCF'] }] },
+            options: { responsive: false, plugins: { legend: { position: 'bottom' } } }
+        })
+    }
 
-    chartInstance = new Chart(chartCanvas.value, {
-        type: 'pie',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Expenses by Category',
-                data,
-                backgroundColor: [
-                    '#36A2EB', '#FF6384', '#FFCE56',
-                    '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
-                ]
-            }]
-        },
-        options: {
-            responsive: false,
-            plugins: { legend: { position: 'bottom' } }
-        }
-    })
+    if (!lineChartCanvas.value) return
+    if (lineChartInstance) lineChartInstance.destroy()
 
-  // --- Line chart by day ---
-  if (!lineChartCanvas.value) return
-  if (lineChartInstance) lineChartInstance.destroy()
+    const groupedByDate = expenses.value.reduce((acc, exp) => {
+        const key = (exp.date || '').slice(0, 10)
+        const val = Number(exp.amount) || 0
+        acc[key] = (acc[key] || 0) + val
+        return acc
+    }, {})
+    const sortedDates = Object.keys(groupedByDate).sort()
+    const dateTotals = sortedDates.map(d => groupedByDate[d])
 
-  // group by date
-  const groupedByDate = expenses.value.reduce((acc, exp) => {
-    const key = (exp.date || '').slice(0, 10)   // normalize YYYY-MM-DD
-    const val = Number(exp.amount) || 0         // fix: ensure numeric
-    acc[key] = (acc[key] || 0) + val
-    return acc
-  }, {})
-
-  // sort by date
-  const sortedDates = Object.keys(groupedByDate).sort()
-  const dateTotals = sortedDates.map(d => groupedByDate[d])
-
-  if (sortedDates.length) {
-    lineChartInstance = new Chart(lineChartCanvas.value, {
-      type: 'line',
-      data: {
-        labels: sortedDates,
-        datasets: [{
-          label: 'Total Expenses per Day',
-          data: dateTotals,
-          fill: false,
-          borderColor: '#36A2EB',
-          tension: 0.3,
-          pointBackgroundColor: '#36A2EB'
-        }]
-      },
-      options: {
-        responsive: false,
-        plugins: {
-          legend: { display: true, position: 'bottom' }
-        },
-        scales: {
-          x: { title: { display: true, text: 'Date' } },
-          y: { title: { display: true, text: 'Amount' }, beginAtZero: true }
-        }
-      }
-    })
-  }
+    if (sortedDates.length) {
+        lineChartInstance = new Chart(lineChartCanvas.value, {
+            type: 'line',
+            data: {
+                labels: sortedDates,
+                datasets: [{ label: 'Total Expenses per Day', data: dateTotals, fill: false, borderColor: '#36A2EB', tension: 0.3, pointBackgroundColor: '#36A2EB' }]
+            },
+            options: {
+                responsive: false,
+                plugins: { legend: { display: true, position: 'bottom' } },
+                scales: { x: { title: { display: true, text: 'Date' } }, y: { title: { display: true, text: 'Amount' }, beginAtZero: true } }
+            }
+        })
+    }
 }
 
-//  NEW: Export helpers
-// const confirmExport = async () => {
-//     const ok = confirm('Generate Excel from current filters? Click OK to download.')
-//     if (!ok) return
-//     await exportToExcel()
-// }
-
-// const exportExcel = async () => {
-//     try {
-//         // pass current filters if set (so export matches the table)
-//         const params = {}
-//         if (filters.value.category) params.category = filters.value.category
-//         if (filters.value.date)     params.date     = filters.value.date
-//         // optional date range support if you add inputs:
-//         // if (reportStart.value) params.start = reportStart.value
-//         // if (reportEnd.value)   params.end   = reportEnd.value
-
-//         // IMPORTANT: responseType blob
-//         const res = await axios.get('/exports/expenses', {
-//             params,
-//             responseType: 'blob'
-//         })
-
-//         // Try to read filename from headers
-//         const dispo = res.headers['content-disposition'] || ''
-//         const match = dispo.match(/filename="?([^"]+)"?/i)
-//         const filename = match ? match[1] : `expenses_${Date.now()}.xlsx`
-
-//         // Create a temporary link and download
-//         const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-//         const url = window.URL.createObjectURL(blob)
-//         const a = document.createElement('a')
-//         a.href = url
-//         a.download = filename
-//         document.body.appendChild(a)
-//         a.click()
-//         a.remove()
-//         window.URL.revokeObjectURL(url)
-
-//         // tiny success notice
-//         alert('Excel is ready and downloading…')
-//     } catch (e) {
-//         console.error('Export error:', e?.response || e)
-//         alert('Failed to export. Check console for details.')
-//     }
-// }
-
-
-onMounted(() => {
-    fetchExpenses()
+onMounted(async () => {
+  await refreshAll()
+  window.addEventListener('focus', handleFocus)
+  document.addEventListener('visibilitychange', handleVisibility)
 })
 
-watch(() => route.query, (q) => {
-    filters.value.category  = q.category ? String(q.category) : ''
-    filters.value.date_from = q.date_from ? String(q.date_from) : ''
-    filters.value.date_to   = q.date_to ? String(q.date_to) : ''
-    fetchExpenses()
+onUnmounted(() => {
+  window.removeEventListener('focus', handleFocus)
+  document.removeEventListener('visibilitychange', handleVisibility)
 })
 
+watch(() => route.query, async () => {
+  // start with values from query (if any)
+  let category  = route.query.category ? String(route.query.category) : ''
+  let date_from = route.query.date_from ? String(route.query.date_from) : ''
+  let date_to   = route.query.date_to   ? String(route.query.date_to)   : ''
+
+  // If user navigates to /expenses with no query, default to "This Month"
+  if (!date_from && !date_to) {
+    const today = new Date()
+    const start = new Date(today.getFullYear(), today.getMonth(), 1)
+      date_from = fmtLocalYMD(start)
+      date_to   = endOfMonth(today)
+    activePreset.value = 'month'
+    // sync URL (avoid loops by only replacing when values differ)
+    const cur = { ...(route.query || {}) }
+    if (cur.date_from !== date_from || cur.date_to !== date_to || cur.category !== category) {
+      router.replace({ query: { category: category || undefined, date_from, date_to } }).catch(() => {})
+    }
+  }
+
+  // apply to local filters
+  filters.value.category  = category
+  filters.value.date_from = date_from
+  filters.value.date_to   = date_to
+
+  await fetchExpenses()
+  await Promise.all([loadBudgetStats(), loadBudgets()])
+})
+
+// Also refresh when the route itself changes (e.g., coming back from /expenses/create)
+onBeforeRouteUpdate((to, from, next) => {
+  // Let navigation happen; the watch(route.query) will trigger refresh
+  next()
+})
 
 watch(() => expenses.value, () => renderChart())
+
+// Sync month control with filter month when user changes date range
+watch([() => filters.value.date_from, () => filters.value.date_to], () => {
+  const base = filters.value.date_to || filters.value.date_from
+  if (!base) return
+  const d = new Date(base)
+  const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+  if (ym !== monthControl.value) monthControl.value = ym
+})
 </script>
 
 <style scoped>
 .filters {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+    display: flex;
+    flex-direction: row; /* fixed */
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 .presets-row { margin-bottom: 0.5rem; }
 
@@ -355,4 +607,10 @@ th, td {
 .btn-secondary { background: #6c757d; color: #fff; }
 .btn-danger    { background: #dc3545; color: #fff; }
 .btn-sm { font-size: 0.9em; padding: 0.15rem 0.5rem; }
+
+.budget-progress { height: 6px; max-width: 180px; }
+.budget-overflow { height: 4px; max-width: 180px; }
+.bg-overflow { background-color: #b91c1c; }
+
+.card { border: 1px solid #e9ecef; border-radius: 8px; background: #fff; }
 </style>

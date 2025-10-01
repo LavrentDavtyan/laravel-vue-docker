@@ -9,6 +9,44 @@ use Carbon\Carbon;
 
 class CategoryReportController extends Controller
 {
+    public function showExpenses(Request $request, $slug)
+    {
+        $userId = $request->user()->id;
+        $from = $request->query('date_from', \Carbon\Carbon::now()->subDays(90)->toDateString());
+        $to   = $request->query('date_to', \Carbon\Carbon::now()->toDateString());
+
+        // Trend line (last 90 days)
+        $trend = \App\Models\Expense::where('user_id', $userId)
+            ->where('category', $slug)
+            ->whereBetween('date', [$from, $to])
+            ->selectRaw('date, SUM(amount) as total')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Top descriptions (within same range)
+        $top = \App\Models\Expense::where('user_id', $userId)
+            ->where('category', $slug)
+            ->whereBetween('date', [$from, $to])
+            ->selectRaw('description, SUM(amount) as total')
+            ->groupBy('description')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        // Items (within same range)
+        $items = \App\Models\Expense::where('user_id', $userId)
+            ->where('category', $slug)
+            ->whereBetween('date', [$from, $to])
+            ->orderByDesc('date')
+            ->paginate(20);
+
+        return response()->json([
+            'trend' => $trend,
+            'top'   => $top,
+            'items' => $items,
+        ]);
+    }
     // Your existing showExpenses(Request $request, $slug) is fine.
 
     public function showIncomes(Request $request, $slug)

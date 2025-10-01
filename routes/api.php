@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\CategoryReportController;
+use App\Http\Controllers\BudgetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,4 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/expenses/category/{slug}', [CategoryReportController::class, 'showExpenses']);
     Route::get('/incomes/category/{slug}', [CategoryReportController::class, 'showIncomes']);
+
+    Route::get('/budgets/stats', [BudgetController::class, 'stats']);
+    Route::apiResource('budgets', BudgetController::class);
+
 });

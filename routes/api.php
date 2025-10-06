@@ -50,7 +50,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/budgets/stats', [BudgetController::class, 'stats']);
     Route::apiResource('budgets', BudgetController::class);
 
-    Route::get('/helper/overspend', [HelperController::class, 'overspend']);
-        Route::post('/helper/advice', [HelperController::class, 'advice']);
+    Route::post('/helper/advice', [HelperController::class, 'advice']);
 
 });

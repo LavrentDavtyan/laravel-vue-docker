@@ -22,13 +22,13 @@ const handleLogout = async () => {
       <router-link class="navbar-brand fw-bold" to="/">Tracker</router-link>
 
       <!-- Toggler for mobile -->
-      <button 
-        class="navbar-toggler" 
-        type="button" 
-        data-bs-toggle="collapse" 
-        data-bs-target="#navbarContent" 
-        aria-controls="navbarContent" 
-        aria-expanded="false" 
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarContent"
+        aria-controls="navbarContent"
+        aria-expanded="false"
         aria-label="Toggle navigation"
       >
         <span class="navbar-toggler-icon"></span>
@@ -44,6 +44,16 @@ const handleLogout = async () => {
           <li class="nav-item">
             <router-link class="nav-link" to="/incomes">Incomes</router-link>
           </li>
+
+            <li class="nav-item">
+                <router-link
+                    class="nav-link"
+                    to="/share"
+                    :class="{ active: $route.path.startsWith('/share') }"
+                >
+                    Share Expenses
+                </router-link>
+            </li>
           <!-- <li class="nav-item">
             <router-link class="nav-link" to="/reports">Reports</router-link>
           </li> -->
@@ -53,9 +63,9 @@ const handleLogout = async () => {
             <span class="text-muted">Welcome, {{ userFullName }}</span>
           </li>
           <li class="nav-item">
-            <button 
-              @click="handleLogout" 
-              class="btn btn-outline-danger btn-sm" 
+            <button
+              @click="handleLogout"
+              class="btn btn-outline-danger btn-sm"
               :disabled="loading"
             >
               Logout
@@ -95,16 +105,16 @@ const handleLogout = async () => {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .nav-menu {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .dashboard-content {
     padding: 1rem;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }

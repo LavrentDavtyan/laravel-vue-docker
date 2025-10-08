@@ -10,6 +10,8 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\CategoryReportController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\HelperController;
+use App\Http\Controllers\Share\ShareTopicController;
+use App\Http\Controllers\Share\ShareExpenseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +28,13 @@ use App\Http\Controllers\HelperController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 Route::get('/health', fn () => response()->json(['status' => 'ok']));
+
+
+
+
+
+// Share Expenses
+
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -50,7 +59,31 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/budgets/stats', [BudgetController::class, 'stats']);
     Route::apiResource('budgets', BudgetController::class);
 
-    Route::get('/helper/overspend', [HelperController::class, 'overspend']);
-        Route::post('/helper/advice', [HelperController::class, 'advice']);
 
+    Route::post('/helper/advice', [HelperController::class, 'advice']);
+
+    // share expenses
+    Route::prefix('share')->group(function () {
+           // Topics
+           Route::get('/topics', [ShareTopicController::class, 'index']);
+           Route::post('/topics', [ShareTopicController::class, 'store']);
+
+           // Members / invite / join / leave
+           Route::get('/topics/{topic}/members', [ShareTopicController::class, 'members']);
+           Route::post('/topics/{topic}/invite/rotate', [ShareTopicController::class, 'rotateInvite']);
+           Route::post('/join/{token}', [ShareTopicController::class, 'joinByToken']);
+           Route::post('/topics/{topic}/leave', [ShareTopicController::class, 'leave']);
+
+           // Status
+           Route::post('/topics/{topic}/close', [ShareTopicController::class, 'close']);
+           Route::post('/topics/{topic}/open',  [ShareTopicController::class, 'open']);
+
+           // Expenses
+           Route::get('/topics/{topic}/expenses',  [ShareExpenseController::class, 'index']);
+           Route::post('/topics/{topic}/expenses', [ShareExpenseController::class, 'store']);
+           Route::delete('/topics/{topic}/expenses/{expense}', [ShareExpenseController::class, 'destroy']);
+
+           // Balances
+           Route::get('/topics/{topic}/balances', [ShareExpenseController::class, 'balances']);
+       });
 });

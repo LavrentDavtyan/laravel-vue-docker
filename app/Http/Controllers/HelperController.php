@@ -83,31 +83,11 @@ class HelperController extends Controller
             'budgets' => $budgetCards,
         ];
 
-        // Cache to reduce API hits (15 minutes)
-        $cacheKey = sprintf('advice:%s:%s:%s', $userId ?? 'guest', $from, $to);
-        $items = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($advice, $context) {
-            return $advice->generate($context);
-        });
-
-        $source = 'ai';
-        if (empty($items)) {
-            $items = collect($overspend)->map(function ($r) {
-                $sev = $r['delta_pct'] >= 50 ? 'high' : ($r['delta_pct'] >= 20 ? 'medium' : 'low');
-                return [
-                    'title' => ($r['category'] ?: 'Uncategorized') . ' Overspend',
-                    'category' => $r['category'] ?: null,
-                    'insight' => $r['message'] ?? 'Spending above baseline.',
-                    'why' => 'Detected higher than 4-week average.',
-                    'actions' => ['Set a category budget', 'Review recent transactions'],
-                    'severity' => $sev,
-                ];
-            })->values()->all();
-            $source = 'fallback';
-        }
+        $items = $advice->generate($context);
 
         return response()->json([
-            'source' => $source,
-            'items'  => $items,
+            'source' => 'ai',
+            'items' => $items['items'] ?? [],
         ]);
     }
 }

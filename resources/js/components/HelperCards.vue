@@ -71,7 +71,7 @@ async function loadAdvice() {
 
         const res = await axios.post('/helper/advice', body)
         if (Array.isArray(res.data)) {
-            // Backward compatibility (old API shape)
+           
             advice.value = res.data
             adviceSource.value = 'ai'
         } else {
@@ -80,30 +80,15 @@ async function loadAdvice() {
         }
         if (!advice.value.length) throw new Error('empty-advice')
     } catch (_) {
-        // Fallback to math-based overspend endpoint
-        try {
-            const res = await axios.get('/helper/overspend', { params: route.query })
-            const rows = Array.isArray(res.data) ? res.data : []
-            advice.value = rows.map(r => ({
-                title: `${r.category || 'Uncategorized'} Overspend`,
-                category: r.category || null,
-                insight: r.message || 'Spending above baseline.',
-                why: 'Detected higher than 4-week average.',
-                actions: ['Set a category budget', 'See details'],
-                severity: r.delta_pct >= 50 ? 'high' : (r.delta_pct >= 20 ? 'medium' : 'low'),
-            }))
-            adviceSource.value = 'fallback'
-        } catch (e) {
-            advice.value = []
-            adviceSource.value = ''
-        }
+ 
     } finally {
         adviceLoading.value = false
     }
 }
 
-onMounted(loadAdvice)
-watch(() => route.query, loadAdvice, { deep: true })
+onMounted(loadAdvice);
+
+watch(() => route.query, loadAdvice, { deep: true });
 </script>
 
 <style scoped>

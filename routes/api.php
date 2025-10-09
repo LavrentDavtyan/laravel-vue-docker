@@ -59,7 +59,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/budgets/stats', [BudgetController::class, 'stats']);
     Route::apiResource('budgets', BudgetController::class);
 
-
     Route::post('/helper/advice', [HelperController::class, 'advice']);
 
     // share expenses

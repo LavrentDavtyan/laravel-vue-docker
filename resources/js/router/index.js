@@ -5,7 +5,11 @@ import { useAuthStore } from '../stores/authStore'
 import LoginForm from '../components/auth/LoginForm.vue'
 import RegisterForm from '../components/auth/RegisterForm.vue'
 import Dashboard from '../components/Dashboard.vue'
-import TaskApp from '../components/TaskApp.vue'
+
+const ShareList = () => import('@/share/ShareList.vue');
+const ShareTopic = () => import('@/share/ShareTopic.vue');
+const JoinShare = () => import('@/share/JoinShare.vue');
+
 
 const routes = [
   {
@@ -96,6 +100,24 @@ const routes = [
         name: 'Budgets',
         component: () => import('../components/BudgetsPanel.vue'),
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/share',
+        name: 'share.list',
+        component: ShareList,
+        meta: { title: 'Share Expenses' }
+    },
+    {
+        path: '/share/:id',
+        name: 'share.topic',
+        component: ShareTopic,
+        meta: { title: 'Share Topic' }
+    },
+    {
+        path: '/share/join/:token',
+        name: 'share.join',
+        component: JoinShare,
+        meta: { title: 'Join Shared Topic' }
     }
 
 

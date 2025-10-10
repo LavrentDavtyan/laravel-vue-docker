@@ -75,10 +75,129 @@ import { useAuthStore } from '../../stores/authStore'
 import * as yup from 'yup'
 
 export default {
-    name: 'LoginForm',
-    setup () {
-        const router = useRouter()
-        const authStore = useAuthStore()
+  name: 'LoginForm',
+  setup() {
+    const router = useRouter()
+    const authStore = useAuthStore()
+
+    const loading = ref(false)
+    const error = ref('')
+
+    const form = reactive({
+      email: '',
+      password: ''
+    })
+
+    // validation errors
+    const errors = reactive({
+      email: '',
+      password: ''
+    })
+
+    // define schema
+    const schema = yup.object().shape({
+      email: yup.string().required('Email is required').email('Enter a valid email'),
+      password: yup.string().required('Password is required').min(6, 'Password must be at least 6 characters')
+    })
+
+    const validateForm = async () => {
+      try {
+        await schema.validate(form, { abortEarly: false })
+        errors.email = ''
+        errors.password = ''
+        return true
+      } catch (err) {
+        errors.email = ''
+        errors.password = ''
+        err.inner.forEach((e) => {
+          errors[e.path] = e.message
+        })
+        return false
+      }
+    }
+
+    const handleLogin = async () => {
+      const isValid = await validateForm()
+      if (!isValid) return
+
+      loading.value = true
+      error.value = ''
+
+      try {
+        await authStore.login(form)
+        router.push('/dashboard')
+      } catch (err) {
+        error.value = err.message || 'Login failed'
+      } finally {
+        loading.value = false
+      }
+    }
+
+    return {
+      form,
+      loading,
+      error,
+      errors,
+      handleLogin
+    }
+  }
+}
+</script>
+
+<style scoped>
+.login-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  padding: 20px;
+}
+
+.form-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-control:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
 
         const loading = ref(false)
         const error = ref('')

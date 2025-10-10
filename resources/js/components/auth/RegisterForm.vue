@@ -212,16 +212,13 @@ export default {
 </script>
 
 <style scoped>
-.auth-viewport {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    background: radial-gradient(circle at 50% 35%, #f8faff 0%, #e7edf8 55%, #dfe6f2 100%);
-    overflow: auto;
+.register-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  padding: 20px;
 }
 
 .auth-card {

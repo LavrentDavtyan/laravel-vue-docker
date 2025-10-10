@@ -107,17 +107,17 @@
 
                         <!-- MINI CHARTS -->
                         <div class="row g-3 mt-1">
-                            <div class="col-12 col-md-6">
+                            <div class="col-12">
                                 <div class="tile">
                                     <div class="tile-label">Net Balance Trend (30 days)</div>
                                     <canvas ref="sparkRef" height="110"></canvas>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-6">
-                                <div class="tile">
-                                    <div class="tile-label">Expenses vs Incomes (30 days)</div>
-                                    <canvas ref="barRef" height="110"></canvas>
-                                </div>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="tile">
+                                <div class="tile-label">Expenses vs Incomes (30 days)</div>
+                                <canvas ref="barRef" height="410"></canvas>
                             </div>
                         </div>
                     </div>
@@ -362,7 +362,7 @@ export default {
                         { label: 'Incomes',  data: incSeries, borderWidth: 1, backgroundColor: '#36A2EB' }
                     ]
                 },
-                options: { responsive: true, scales: { x: { display: false }, y: { beginAtZero: true, display: false } } }
+                options: { responsive: true, scales: { x: { display: true }, y: { beginAtZero: true, display: true } } }
             })
 
             // Donut: MTD mix

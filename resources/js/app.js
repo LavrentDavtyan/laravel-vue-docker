@@ -6,6 +6,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 import './http';
 import { useAuthStore } from './stores/authStore'
+import '../css/share.css';
 
 const app = createApp(App)
 

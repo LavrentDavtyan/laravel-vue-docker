@@ -17,15 +17,27 @@ class ShareExpenseController extends Controller
     {
         $this->authorizeTopic($request, $topic);
 
-        $items = ShareExpense::query()
-            ->where('topic_id', $topic->id)
-            ->orderByDesc('id')
+        // Optional query params: ?from=YYYY-MM-DD&to=YYYY-MM-DD
+        $from = $request->query('from');
+        $to   = $request->query('to');
+
+        $q = ShareExpense::query()->where('topic_id', $topic->id);
+
+        if ($from) {
+            $q->whereDate('date', '>=', $from);
+        }
+        if ($to) {
+            $q->whereDate('date', '<=', $to);
+        }
+
+        $items = $q->orderByDesc('id')
             ->get(['id','description','amount','currency','payer_user_id','date','created_at']);
 
         return response()->json([
             'data' => [
                 'expenses' => $items,
-                'status'   => $topic->status, // let UI know if closed
+                'status'   => $topic->status,
+                'currency' => $topic->currency,
             ],
         ]);
     }
@@ -50,37 +62,40 @@ class ShareExpenseController extends Controller
 
         return DB::transaction(function () use ($topic, $payload, $userId) {
 
-            // Ensure there is at least the owner as a member
+            // Ensure there is at least the owner as a member (idempotent safety)
             if (!ShareTopicMember::where('topic_id', $topic->id)->exists()) {
                 ShareTopicMember::create([
                     'topic_id'     => $topic->id,
                     'user_id'      => $topic->owner_user_id,
+                    // If ShareTopic::owner relation exists, use it; otherwise "Owner"
                     'display_name' => optional($topic->owner)->name ?? 'Owner',
                     'role'         => 'owner',
                     'joined_at'    => now(),
                 ]);
             }
 
-            // Create the expense (splits are not authoritative for balances anymore)
+            // Create the expense
             $expense = ShareExpense::create([
                 'topic_id'      => $topic->id,
                 'payer_user_id' => $userId,
                 'description'   => $payload['description'],
-                'amount'        => $payload['amount'],           // decimal(12,2)
-                'currency'      => $topic->currency,             // e.g. 'USD'
+                // store with 2 fixed decimals to avoid float drift downstream
+                'amount'        => number_format((float) $payload['amount'], 2, '.', ''),
+                'currency'      => $topic->currency,
                 'date'          => $payload['date'] ?? now()->toDateString(),
                 'notes'         => $payload['notes'] ?? null,
             ]);
 
             /**
              * Optional: keep per-expense splits as a snapshot at creation time.
-             * These are no longer used to compute balances, but you can keep them
-             * for auditing if you like.
+             * These are no longer used to compute balances, but are useful for auditing.
              */
             $members = ShareTopicMember::where('topic_id', $topic->id)
-                ->orderBy('id')->get(['id']);
+                ->orderBy('id')
+                ->get(['id']);
+
             $count = max(1, $members->count());
-            $raw   = $expense->amount / $count;
+            $raw   = (float) $expense->amount / $count;
             $split = number_format($raw, 2, '.', '');
 
             foreach ($members as $m) {
@@ -100,7 +115,7 @@ class ShareExpenseController extends Controller
      * - For each expense: split equally among *current* members (in cents for exactness).
      * - Payer gets +amount and also owes their equal share like everyone else.
      * - Everyone else owes just their equal share.
-     * This means adding a member later will immediately re-balance past expenses.
+     * Adding a member later will immediately re-balance past expenses.
      */
     public function balances(Request $request, ShareTopic $topic)
     {
@@ -119,7 +134,7 @@ class ShareExpenseController extends Controller
             ]]);
         }
 
-        // Map user_id -> member_id (payer lookup), work in cents to avoid rounding drift
+        // Map user_id -> member_id (payer lookup); work in cents to avoid rounding drift
         $memberIdByUserId = $members->pluck('id', 'user_id')->all();  // [user_id => member_id]
         $memberIdsOrdered = $members->pluck('id')->values()->all();   // deterministic order
 
@@ -154,7 +169,7 @@ class ShareExpenseController extends Controller
             // If payer isn't a member (shouldn't happen), we simply don't credit anyone.
         }
 
-        // Build balances in decimal dollars
+        // Build balances in decimal currency
         $balances = [];
         foreach ($memberIdsOrdered as $mid) {
             $balances[] = [
@@ -168,7 +183,7 @@ class ShareExpenseController extends Controller
         $debtors = [];
         $creditors = [];
         foreach ($balances as $b) {
-            if ($b['net'] < -0.005) $debtors[]  = ['member_id' => $b['member_id'], 'amount' => round(-$b['net'], 2)];
+            if ($b['net'] < -0.005) $debtors[]   = ['member_id' => $b['member_id'], 'amount' => round(-$b['net'], 2)];
             if ($b['net'] >  0.005) $creditors[] = ['member_id' => $b['member_id'], 'amount' => round( $b['net'], 2)];
         }
         usort($debtors,   fn($a,$b) => $b['amount'] <=> $a['amount']);
@@ -221,7 +236,7 @@ class ShareExpenseController extends Controller
     {
         $uid = (int) $request->user()->id;
 
-        $isOwner = ($topic->owner_user_id === $uid);
+        $isOwner  = ($topic->owner_user_id === $uid);
         $isMember = ShareTopicMember::where('topic_id', $topic->id)
             ->where('user_id', $uid)
             ->exists();

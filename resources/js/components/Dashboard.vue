@@ -14,8 +14,8 @@
                             <div class="small text-muted">{{ currentUser?.email }}</div>
                         </div>
                         <span class="badge" :class="currentUser?.is_active ? 'text-bg-success' : 'text-bg-danger'">
-              {{ currentUser?.is_active ? 'Active' : 'Inactive' }}
-            </span>
+                        {{ currentUser?.is_active ? 'Active' : 'Inactive' }}
+                        </span>
                     </div>
                 </div>
 
@@ -58,8 +58,8 @@
                                         <div class="text-end small">
                                             Last: {{ money(lastMonth.expenses) }}<br>
                                             <span :class="expDeltaPct >= 0 ? 'text-danger' : 'text-success'">
-                        {{ signedPct(expDeltaPct) }}
-                      </span>
+                                                {{ signedPct(expDeltaPct) }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -73,8 +73,8 @@
                                         <div class="text-end small">
                                             Last: {{ money(lastMonth.incomes) }}<br>
                                             <span :class="incDeltaPct >= 0 ? 'text-success' : 'text-danger'">
-                        {{ signedPct(incDeltaPct) }}
-                      </span>
+                                                {{ signedPct(incDeltaPct) }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

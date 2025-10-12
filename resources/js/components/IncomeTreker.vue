@@ -24,13 +24,13 @@
         </div>
 
         <div class="row">
-            <div class="col-6">
+            <div class="col-md-6 col-12">
                 <div class="chart-section">
                     <h3>Incomes by Category</h3>
                     <canvas ref="chartCanvas" width="400" height="300"></canvas>
                 </div>
             </div>
-            <div class="col-6">
+            <div class="col-md-6 col-12">
                 <div class="chart-section">
                     <h3>Incomes per Day</h3>
                     <canvas ref="lineChartCanvas" width="650" height="300"></canvas>

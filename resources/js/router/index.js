@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/authStore'
 import LoginForm from '../components/auth/LoginForm.vue'
 import RegisterForm from '../components/auth/RegisterForm.vue'
 import Dashboard from '../components/Dashboard.vue'
+import Investstion from '../components/Investstion.vue'
 
 const ShareList = () => import('@/share/ShareList.vue');
 const ShareTopic = () => import('@/share/ShareTopic.vue');
@@ -118,6 +119,12 @@ const routes = [
         name: 'share.join',
         component: JoinShare,
         meta: { title: 'Join Shared Topic' }
+    },
+    {
+      path: '/investstion',
+      name: 'investstion',
+      component: Investstion,
+      meta: { requiresAuth: true }
     }
 
 

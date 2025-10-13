@@ -54,9 +54,9 @@ const handleLogout = async () => {
                     Share Expenses
                 </router-link>
             </li>
-          <!-- <li class="nav-item">
-            <router-link class="nav-link" to="/reports">Reports</router-link>
-          </li> -->
+          <li class="nav-item">
+              <router-link class="nav-link" to="/investstion">Investstions</router-link>
+          </li>
         </ul>
         <ul class="navbar-nav ms-auto">
           <li class="nav-item d-flex align-items-center me-3">

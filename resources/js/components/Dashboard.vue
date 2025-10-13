@@ -202,6 +202,7 @@ import Chart from 'chart.js/auto'
 import HelperCards from './HelperCards.vue'
 
 export default {
+
     name: 'Dashboard',
     components: { HelperCards },
     setup () {
@@ -417,6 +418,7 @@ export default {
             incDeltaPct: computed(() => {
                 const base = lastMonth.value.incomes || 0
                 if (!base) return 100
+                
                 return ((mtd.value.incomes - base) / base) * 100
             })
         }

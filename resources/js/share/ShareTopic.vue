@@ -458,7 +458,20 @@
                 {{ toastMsg }}
             </div>
         </template>
+        <ConfirmModal
+            ref="confirmRef"
+            :title="confirmTitle"
+            :message="confirmMessage"
+            @confirm="onConfirm"
+        />
+        <MessageModal
+            ref="msgRef"
+            :title="msgTitle"
+            :message="msgMessage"
+        />
     </div>
+
+
 </template>
 
 <script setup>
@@ -468,6 +481,38 @@ import { storeToRefs } from 'pinia';
 import { useShareStore } from '@/stores/share';
 import JoinRequestPanel from '@/share/JoinRequestPanel.vue';
 import Chart from 'chart.js/auto';
+import ConfirmModal from '../components/common/ConfirmModal.vue'
+import MessageModal from '../components/common/MessageModal.vue'
+
+const confirmRef = ref(null)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const confirmCallback = ref(null)
+
+const msgRef = ref(null)
+const msgTitle = ref('')
+const msgMessage = ref('')
+
+function showMessage (title, message) {
+    msgTitle.value = title
+    msgMessage.value = message
+    msgRef.value?.show()
+}
+function askConfirm (title, message, cb) {
+    confirmTitle.value = title
+    confirmMessage.value = message
+    confirmCallback.value = cb
+    confirmRef.value?.show()
+}
+async function onConfirm () {
+    try {
+        if (typeof confirmCallback.value === 'function') {
+            await confirmCallback.value()
+        }
+    } finally {
+        confirmCallback.value = null
+    }
+}
 
 const route = useRoute();
 const share = useShareStore();
@@ -684,10 +729,26 @@ async function leave() {
     await share.leaveTopic(id.value);
     history.back();
 }
-async function onDelete(expenseId) {
-    if (!id.value) return;
-    if (!confirm('Delete this expense? This cannot be undone.')) return;
-    await share.deleteExpense(id.value, expenseId);
+async function onDelete (expenseId) {
+    if (!id.value) return
+
+    askConfirm(
+        'Delete expense',
+        'Are you sure you want to delete this expense? This cannot be undone.',
+        async () => {
+            try {
+                await share.deleteExpense(id.value, expenseId)
+                await share.fetchExpenses(id.value)
+                // Update charts if you render them immediately after list reload
+                renderPayerChart()
+                renderTimeChart()
+                showMessage('Deleted', 'The expense was successfully deleted.')
+            } catch (e) {
+                console.error(e)
+                showMessage('Error', e?.response?.data?.message || 'Failed to delete the expense.')
+            }
+        }
+    )
 }
 async function onCloseTopic() {
     if (!id.value) return;

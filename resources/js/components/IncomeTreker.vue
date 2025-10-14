@@ -73,6 +73,14 @@
                 <ExportExcel type="incomes" />
             </div>
         </div>
+        <ConfirmModal
+            ref="confirmRef"
+            :title="confirmTitle"
+            :message="confirmMessage"
+            @confirm="onConfirm"
+        />
+        <MessageModal ref="msgRef" :title="msgTitle" :message="msgMessage" />
+
     </div>
 </template>
 
@@ -82,6 +90,39 @@ import { useRoute, useRouter } from 'vue-router'
 import axios from '../http'
 import Chart from 'chart.js/auto'
 import ExportExcel from './ExportExcel.vue'
+import ConfirmModal from './common/ConfirmModal.vue'
+import MessageModal from './common/MessageModal.vue'
+
+const confirmRef = ref(null)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const confirmCallback = ref(null)
+
+const msgRef = ref(null)
+const msgTitle = ref('')
+const msgMessage = ref('')
+
+function showMessage(title, message) {
+    msgTitle.value = title
+    msgMessage.value = message
+    msgRef.value?.show()
+}
+function askConfirm(title, message, cb) {
+    confirmTitle.value = title
+    confirmMessage.value = message
+    confirmCallback.value = cb
+    confirmRef.value?.show()
+}
+async function onConfirm() {
+    try {
+        if (typeof confirmCallback.value === 'function') {
+            await confirmCallback.value()
+        }
+    } finally {
+        confirmCallback.value = null
+    }
+}
+
 
 const route = useRoute()
 const router = useRouter()
@@ -156,20 +197,21 @@ const fetchIncomes = async () => {
     incomes.value = res.data
 }
 
-const deleteIncome = async (id) => {
-    if (confirm('Delete this income?')) {
-        try {
-            await axios.delete(`/incomes/${id}`)
-            await fetchIncomes()
-        } catch (e) {
-            if (e?.response?.status === 401) {
-                alert('Session expired. Please log in again.')
-            } else {
-                console.error(e)
-                alert('Delete failed.')
+const deleteIncome = (id) => {
+    askConfirm(
+        'Delete income',
+        'Are you sure you want to delete this income? This cannot be undone.',
+        async () => {
+            try {
+                await axios.delete(`/incomes/${id}`)
+                await fetchIncomes()              // keep your existing reload
+                showMessage('Deleted', 'Income removed successfully.')
+            } catch (e) {
+                const msg = e?.response?.data?.message || e?.message || 'Delete failed.'
+                showMessage('Error', msg)
             }
         }
-    }
+    )
 }
 
 const renderChart = () => {

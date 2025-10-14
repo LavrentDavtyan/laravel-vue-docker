@@ -166,6 +166,14 @@
                 <ExportExcel type="expenses" />
             </div>
         </div>
+
+        <ConfirmModal
+            ref="confirmRef"
+            :title="confirmTitle"
+            :message="confirmMessage"
+            @confirm="onConfirm"
+        />
+        <MessageModal ref="msgRef" :title="msgTitle" :message="msgMessage" />
     </div>
 </template>
 
@@ -175,6 +183,8 @@ import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router'
 import axios from '../http'
 import Chart from 'chart.js/auto'
 import ExportExcel from './ExportExcel.vue'
+import ConfirmModal from './common/ConfirmModal.vue'
+import MessageModal from './common/MessageModal.vue'
 
 // Format a Date as YYYY-MM-DD in local time (no UTC shift)
 function fmtLocalYMD(d) {
@@ -240,6 +250,39 @@ let chartInstance = null
 const lineChartCanvas = ref(null)
 let lineChartInstance = null
 let refreshInFlight = false
+
+
+const confirmRef = ref(null)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const confirmCallback = ref(null)
+
+const msgRef = ref(null)
+const msgTitle = ref('')
+const msgMessage = ref('')
+
+function showMessage(title, message) {
+    msgTitle.value = title
+    msgMessage.value = message
+    msgRef.value?.show()
+}
+
+function askConfirm(title, message, cb) {
+    confirmTitle.value = title
+    confirmMessage.value = message
+    confirmCallback.value = cb
+    confirmRef.value?.show()
+}
+
+async function onConfirm() {
+    try {
+        if (typeof confirmCallback.value === 'function') {
+            await confirmCallback.value()
+        }
+    } finally {
+        confirmCallback.value = null
+    }
+}
 
 // Helper to refresh everything (expenses + budgets + stats), guarded to prevent parallel refreshes
 async function refreshAll() {
@@ -395,10 +438,24 @@ function startEdit(row) {
   }
 }
 
-async function removeBudget(id) {
-  if (!confirm('Delete this budget?')) return
-  await axios.delete(`/budgets/${id}`)
-  await Promise.all([loadBudgets(), loadBudgetStats()])
+function removeBudget(id) {
+    askConfirm(
+        'Delete budget',
+        'Are you sure you want to delete this budget? This cannot be undone.',
+        async () => {
+            try {
+                await axios.delete(`/budgets/${id}`)
+                await Promise.all([loadBudgets(), loadBudgetStats()])
+                console.log('Budget deleted')
+            } catch (e) {
+                if (e?.response?.status === 401) {
+                    console.warn('Session expired. Please log in again.')
+                } else {
+                    console.error('Delete budget failed.', e)
+                }
+            }
+        }
+    )
 }
 
 // Merge budgets with stats for UI table rows (robust fallback)
@@ -448,21 +505,28 @@ const budgetRows = computed(() => {
   })
 })
 
-const deleteExpense = async (id) => {
-    if (confirm('Delete this expense?')) {
-        try {
-            await axios.delete(`/expenses/${id}`)
-            await fetchExpenses()
-            await loadBudgetStats()
-        } catch (e) {
-            if (e?.response?.status === 401) {
-                alert('Session expired. Please log in again.')
-            } else {
-                console.error(e)
-                alert('Delete failed.')
+const deleteExpense = (id) => {
+    askConfirm(
+        'Delete Expense',
+        'Are you sure you want to delete this expense? This action cannot be undone.',
+        async () => {
+            try {
+                await axios.delete(`/expenses/${id}`)
+                await fetchExpenses()
+                await loadBudgetStats()
+
+
+                showMessage('Deleted', 'The expense was successfully deleted.')
+            } catch (e) {
+                if (e?.response?.status === 401) {
+                    showMessage('Session Expired', 'Please log in again to continue.')
+                } else {
+                    console.error('Delete failed', e)
+                    showMessage('Error', 'Failed to delete the expense. Please try again.')
+                }
             }
         }
-    }
+    )
 }
 
 const clearFilters = () => {

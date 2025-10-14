@@ -30,7 +30,10 @@ let modal;
 onMounted(() => { modal = new Modal(modalEl.value); });
 
 function show() { modal.show(); }
-function hide() { modal.hide(); }
+function hide() {
+    document.activeElement?.blur()
+    modal.hide()
+}
 function confirm() { emit('confirm'); hide(); }
 
 defineExpose({ show, hide });

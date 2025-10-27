@@ -345,11 +345,39 @@ export default {
             if (spark) spark.destroy()
             spark = new Chart(sparkRef.value, {
                 type: 'line',
-                data: { labels: daysArr, datasets: [{ data: netSeries, borderWidth: 2, fill: false }] },
+                data: {
+                    labels: daysArr,
+                    datasets: [{
+                        data: netSeries,
+                        borderWidth: 2,
+                        fill: false,
+                        borderColor: '#007bff',
+                    }]
+                },
                 options: {
-                    responsive: true, plugins: { legend: { display: false } },
-                    scales: { x: { display: false }, y: { display: false } },
-                    elements: { point: { radius: 0 } }
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            ticks: {
+                                autoSkip: true,
+                                // callback: (value, index) => {
+                                //     const current = daysArr[index].split('-')[1];
+                                //     const prev = index > 0 ? daysArr[index - 1].split('-')[1] : null;
+                                //     return current === prev ? '' : current;
+                                // }
+                            },
+                            grid: { display: false }
+                        },
+                        y: { display: true, grid: { display: false } }
+                    },
+
+                    elements: {
+                        point: { radius: 0 }
+                    }
                 }
             })
 

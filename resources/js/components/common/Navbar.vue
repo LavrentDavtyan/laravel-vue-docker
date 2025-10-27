@@ -35,29 +35,38 @@ const handleLogout = async () => {
       </button>
       <div class="collapse navbar-collapse" id="navbarContent">
         <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <router-link class="nav-link" to="/dashboard">Dashboard</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/expenses">Expenses</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/incomes">Incomes</router-link>
-          </li>
+        <li class="nav-item">
+          <router-link class="nav-link" to="/dashboard" active-class="active" exact-active-class="active">
+            Dashboard
+          </router-link>
+        </li>
+        <li class="nav-item">
+          <router-link class="nav-link" to="/expenses" active-class="active" exact-active-class="active">
+            Expenses
+          </router-link>
+        </li>
+        <li class="nav-item">
+          <router-link class="nav-link" to="/incomes" active-class="active" exact-active-class="active">
+            Incomes
+          </router-link>
+        </li>
+        <li class="nav-item">
+          <router-link
+            class="nav-link"
+            to="/share"
+            active-class="active"
+            exact-active-class="active"
+          >
+            Share Expenses
+          </router-link>
+        </li>
+        <li class="nav-item">
+          <router-link class="nav-link" to="/investstion" active-class="active" exact-active-class="active">
+            Investments
+          </router-link>
+        </li>
+      </ul>
 
-            <li class="nav-item">
-                <router-link
-                    class="nav-link"
-                    to="/share"
-                    :class="{ active: $route.path.startsWith('/share') }"
-                >
-                    Share Expenses
-                </router-link>
-            </li>
-          <li class="nav-item">
-              <router-link class="nav-link" to="/investstion">Investstions</router-link>
-          </li>
-        </ul>
         <ul class="navbar-nav ms-auto">
           <li class="nav-item d-flex align-items-center me-3">
             <span class="text-muted">Welcome, {{ userFullName }}</span>
@@ -97,6 +106,11 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.nav-link.active {
+  font-weight: 600;
+  color: #36A2EB !important;
 }
 
 @media (max-width: 768px) {

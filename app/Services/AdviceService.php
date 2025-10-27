@@ -58,7 +58,7 @@ class AdviceService
     {
         $json = json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         return <<<PROMPT
-You are a financial assistant. Based on this JSON context of the user's spending and budgets, generate personalized spending advice.
+You are a financial assistant. Based on this JSON context of the user's spending and budgets, generate personalized spending advices .
 
 Context:
 {$json}
